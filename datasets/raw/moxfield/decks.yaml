@@ -1,0 +1,11 @@
+asset:
+  database: raw
+  schema: moxfield
+  name: pauperEdh_decks
+  fileformat: util.public.parquet
+nature:
+  name: incremental
+  tombstone: last_updated
+  unique_key: ['deckid']
+connection:
+  kind: moxfield
