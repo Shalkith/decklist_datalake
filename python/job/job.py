@@ -7,6 +7,7 @@ import logging
 import argparse
 import pandas as pd
 import time 
+
 os.chdir(os.path.dirname(__file__))
 from lib.utils.moxfield_util.moxfield_util import MoxfieldUtil
 
@@ -18,18 +19,19 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 datasets_folder = '../../datasets/' # this is where the yaml file is located
 output_folder = '../../outputs/' # this is where the output will be in parquet format to be loaded into the database later
-jobfile = datasets_folder+'raw/moxfield/pauperEdh_decks_table.yaml' # sample arg that could be passed for testing
-jobfile = datasets_folder+'raw/moxfield/commander_decks_table.yaml' # sample arg that could be passed for testing
+#jobfile = datasets_folder+'raw/moxfield/pauperEdh_decks_table.yaml' # sample arg that could be passed for testing
+#jobfile = datasets_folder+'raw/moxfield/commander_decks_table.yaml' # sample arg that could be passed for testing
 
 last_unix_time = 0 # this will be the last unix time of the last run
 
-if not jobfile:
-    argparser = argparse.ArgumentParser(description='Job Manager')
-    argparser.add_argument('jobfile', help='Job file to execute')
-    args = argparser.parse_args()
-    # load the job file
-    jobfile = args.jobfile
-    jobfile = os.path.join(datasets_folder, jobfile)
+
+
+argparser = argparse.ArgumentParser(description='Job Manager')
+argparser.add_argument('jobfile', help='Job file to execute')
+args = argparser.parse_args()
+# load the job file
+jobfile = args.jobfile
+jobfile = os.path.join(datasets_folder, jobfile)
 
 
 if not os.path.exists(jobfile):

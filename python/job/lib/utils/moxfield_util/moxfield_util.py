@@ -32,8 +32,7 @@ class MoxfieldUtil:
 
     def get_decks(self):
         page = 1 
-
-        url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Ascending&fmt={}&board=mainboard'.format(page,self.format)
+        url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Descending&fmt={}&board=mainboard'.format(page,self.format)
         response = requests.get(url, headers=self.headers)
         data = json.loads(response.text)
         total_pages = data['totalPages']
@@ -41,12 +40,14 @@ class MoxfieldUtil:
         stop = False
 
         while page <= total_pages and not stop:
-            url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Ascending&fmt={}&board=mainboard'.format(page,self.format)
+            print(page)
+            url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Descending&fmt={}&board=mainboard'.format(page,self.format)
             response = requests.get(url, headers=self.headers)
             data = json.loads(response.text)
             for deck in data['data']:
                 if deck['lastUpdatedAtUtc'] > self.start_date:
                     self.decks = pd.concat([self.decks,pd.DataFrame({'id':deck['publicId'],'lastupdated':deck['lastUpdatedAtUtc']},index=[0])])
+                    print(len(self.decks),'decks found')
                     if len(self.decks) >= self.max_rows and self.max_rows > 0:
                         stop = True
                 else:
@@ -63,7 +64,13 @@ class MoxfieldUtil:
         #for deck in self.decks:
             url = self.deckurl + deck.id
             response = requests.get(url, headers=self.headers)
-            data = json.loads(response.text)
+
+            try:
+                data = json.loads(response.text)
+                data['lastUpdatedAtUtc']
+            except:
+                print('No last updated date for deck:',data)
+                continue
             if data['lastUpdatedAtUtc'] > self.start_date:
                 self.start_date = data['lastUpdatedAtUtc']
             # if deckid is in list, remove old one and add new one otherwise add new one
