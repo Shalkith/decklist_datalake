@@ -1,0 +1,13 @@
+asset:
+  database: raw
+  schema: moxfield
+  name: commander_decks
+  fileformat: util.public.parquet
+nature:
+  name: incremental
+  tombstone: last_updated
+  unique_key: ['deckid']
+connection:
+  kind: moxfield
+parameters:
+  max_rows: 500

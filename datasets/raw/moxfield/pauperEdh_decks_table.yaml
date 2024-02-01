@@ -9,3 +9,5 @@ nature:
   unique_key: ['deckid']
 connection:
   kind: moxfield
+parameters:
+  max_rows: 500
