@@ -10,4 +10,4 @@ nature:
 connection:
   kind: moxfield
 parameters:
-  max_rows: 500
+  max_rows: 0
