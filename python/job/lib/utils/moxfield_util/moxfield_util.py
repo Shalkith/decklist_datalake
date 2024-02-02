@@ -38,22 +38,37 @@ class MoxfieldUtil:
         total_pages = data['totalPages']
         self.decks = pd.DataFrame(columns=['id','lastupdated'])
         stop = False
+        pages_without_decks = 0 
+        
 
         while page <= total_pages and not stop:
-            print(page)
+            decksfound = False
             url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Descending&fmt={}&board=mainboard'.format(page,self.format)
             response = requests.get(url, headers=self.headers)
             data = json.loads(response.text)
             for deck in data['data']:
-                if deck['lastUpdatedAtUtc'] > self.start_date:
+                #convert last updated date to timestamp
+                try:
+                    lastupdate = str(datetime.datetime.strptime(deck['lastUpdatedAtUtc'], '%Y-%m-%dT%H:%M:%SZ')) # 2024-02-01T21:11:30Z
+                except:
+                    lastupdate = str(datetime.datetime.strptime(deck['lastUpdatedAtUtc'][:19], '%Y-%m-%dT%H:%M:%S')) # 2024-02-01T21:11:39.69Z
+                #if deck['lastUpdatedAtUtc'] > self.start_date:
+                if lastupdate > self.start_date:
                     self.decks = pd.concat([self.decks,pd.DataFrame({'id':deck['publicId'],'lastupdated':deck['lastUpdatedAtUtc']},index=[0])])
                     print(len(self.decks),'decks found')
+                    decksfound = True
+
                     if len(self.decks) >= self.max_rows and self.max_rows > 0:
                         stop = True
                 else:
                     pass
             
-            page += 1    
+            page += 1  
+            if not decksfound:
+                pages_without_decks += 1
+            if pages_without_decks > 5:
+                stop = True
+                  
         return self.scrape_decks()
     
     def scrape_decks(self):
