@@ -2,14 +2,16 @@
 
 import os
 import sys
-import yaml
 import logging
 import argparse
 import pandas as pd
 import time 
+from job_configs import *
 
 os.chdir(os.path.dirname(__file__))
 from lib.utils.moxfield_util.moxfield_util import MoxfieldUtil
+from lib.utils.scryfall_util.scryfall_util import ScryfallUtil
+from lib.utils.dbload_util.dbload_util import DBLoadUtil
 
 ## Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -17,38 +19,30 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 #################################
 ############ Setup ##############
 
-datasets_folder = '../../datasets/' # this is where the yaml file is located
-output_folder = '../../outputs/' # this is where the output will be in parquet format to be loaded into the database later
-#jobfile = datasets_folder+'raw/moxfield/pauperEdh_decks_table.yaml' # sample arg that could be passed for testing
-#jobfile = datasets_folder+'raw/moxfield/commander_decks_table.yaml' # sample arg that could be passed for testing
 
-last_unix_time = 0 # this will be the last unix time of the last run
-
-
-
-argparser = argparse.ArgumentParser(description='Job Manager')
-argparser.add_argument('jobfile', help='Job file to execute')
-args = argparser.parse_args()
-# load the job file
-jobfile = args.jobfile
-jobfile = os.path.join(datasets_folder, jobfile)
+try:
+    jobfile
+except:
+    argparser = argparse.ArgumentParser(description='Job Manager')
+    argparser.add_argument('jobfile', help='Job file to execute')
+    args = argparser.parse_args()
+    # load the job file
+    jobfile = args.jobfile
+    jobfile = os.path.join(datasets_folder, jobfile)
 
 
 if not os.path.exists(jobfile):
     logging.error('Job file does not exist: %s' % jobfile)
     sys.exit(1)
 
-with open(jobfile, 'r') as f:
-    job = yaml.safe_load(f)
-
-#create the output folder if it does not exist
-output_folder = os.path.join(output_folder, job['asset']['database'], job['asset']['schema'], job['asset']['name'])
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-previousruns = os.listdir(output_folder)
+job,output_folder,previousruns,nature = read_yaml(jobfile,output_folder)
 
 
-nature = job['nature']['name']
+#create the db directory if it doesnt already exist
+if not os.path.exists(db_folder):
+    os.makedirs(db_folder)
+
+
 if nature == 'incremental':
     tombstone = job['nature']['tombstone']    
 
@@ -79,7 +73,15 @@ if nature == 'incremental':
         logging.error('Connection kind not supported: %s' % job['connection']['kind'])
         sys.exit(1)
 
+if nature == 'snapshot':
+    logging.info('Executing snapshot job: %s' % jobfile)
+    if job['connection']['kind'] == 'scryfall':
+        scry = ScryfallUtil(start_date)
+        parquetdata,end_date = scry.get_bulk_oracle_data()
 
+    else:    
+        logging.error('Connection kind not supported: %s' % job['connection']['kind'])
+        sys.exit(1)
 #convert data to parquet and save to output folder / enddate / data.parquet
 # make the end_date folder if it does not exist
         #if 
@@ -93,5 +95,12 @@ else:
 
 
 parquetdata.to_parquet(os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet'))
+path_to_parquet = os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet')
+#load the data into the database
+db = DBLoadUtil(db_folder)
+if nature == 'incremental':
+    db.load_data(job['asset']['name'],path_to_parquet,nature,end_date,job['nature']['unique_key'])
+else:
+    db.load_data(job['asset']['name'],path_to_parquet,nature,end_date)
 
    
