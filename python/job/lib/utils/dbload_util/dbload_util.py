@@ -26,20 +26,25 @@ class DBLoadUtil:
         if table_nature == 'incremental':
             #extract all records in the table currently
             # if the table does not exist just insert the data
+            dataframe.to_sql('mtg_datalake_temp', self.db_conn, if_exists='replace', index=False)
             try:
+                # load the data to a temorary table
+                
+                #create a distinct union of the two tables
+                dataframe = pd.read_sql('select distinct * from (select * from %s union select * from mtg_datalake_temp)' % table_name, self.db_conn)
 
-                currentdata = pd.read_sql('select * from %s' % table_name, self.db_conn)
-                frames = [currentdata,dataframe]
-                dataframe = pd.concat(frames)
                 #order by tombstone 
                 if tombstone:
                     dataframe = dataframe.sort_values(by=[tombstone],ascending=True)
                 if index_name:
                     dataframe = dataframe.drop_duplicates(subset=index_name, keep='last')
-            except:
+            except Exception as e:
+                logging.error('Error loading data: %s' % e)
                 pass
             
             dataframe.to_sql(table_name, self.db_conn, if_exists='replace', index=False)
+            #drop temp table
+            self.db_conn.execute('drop table mtg_datalake_temp')
 
         elif table_nature == 'snapshot':
             dataframe.to_sql(table_name, self.db_conn, if_exists='replace', index=False)

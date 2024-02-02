@@ -12,6 +12,7 @@ os.chdir(os.path.dirname(__file__))
 from lib.utils.moxfield_util.moxfield_util import MoxfieldUtil
 from lib.utils.scryfall_util.scryfall_util import ScryfallUtil
 from lib.utils.dbload_util.dbload_util import DBLoadUtil
+from lib.utils.parquet_util.parquet_util import ParquetUtil
 
 ## Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -96,11 +97,21 @@ else:
 
 parquetdata.to_parquet(os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet'))
 path_to_parquet = os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet')
+
+split = ParquetUtil(path_to_parquet)
+loadfiles = split.split_file()
+
 #load the data into the database
 db = DBLoadUtil(db_folder)
-if nature == 'incremental':
-    db.load_data(job['asset']['name'],path_to_parquet,nature,end_date,job['nature']['unique_key'])
-else:
-    db.load_data(job['asset']['name'],path_to_parquet,nature,end_date)
 
+for file in loadfiles:
+    if nature == 'incremental':
+        db.load_data(job['asset']['name'],file,nature,end_date,job['nature']['unique_key'])
+    else:
+        db.load_data(job['asset']['name'],file,nature,end_date)
+
+#delete the loadfiles when done 
+for file in loadfiles:
+    os.remove(file)
+    
    

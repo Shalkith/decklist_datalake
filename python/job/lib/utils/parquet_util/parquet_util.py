@@ -8,6 +8,16 @@ class ParquetUtil:
     def read_parquet(self):
         return pd.read_parquet(self.parquet_file)
     
+    def split_file(self,rows=500):
+        df = pd.read_parquet(self.parquet_file)
+        # split the file as many times as needed
+        splitfiles = []
+        for i in range(0, len(df), rows):
+            df_part = df[i:i+rows]
+            df_part.to_parquet(self.parquet_file+'_part_'+ str(i) + '.parquet')
+            splitfiles.append(self.parquet_file+'_part_'+ str(i) + '.parquet')
+        return splitfiles
+    
 
 
 if __name__ == '__main__':
@@ -19,3 +29,6 @@ if __name__ == '__main__':
     df = parquet_util.read_parquet()
     print(df.head())
     print(df.tail())
+    rows = int(input('Enter the number of rows to split the file by: '))
+    parquet_util.split_file(rows)
+
