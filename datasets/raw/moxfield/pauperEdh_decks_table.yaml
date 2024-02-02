@@ -6,7 +6,7 @@ asset:
 nature:
   name: incremental
   tombstone: last_updated
-  unique_key: ['deckid']
+  unique_key: 'id'
 connection:
   kind: moxfield
 parameters:
