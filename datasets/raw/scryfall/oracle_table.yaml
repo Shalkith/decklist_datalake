@@ -1,0 +1,12 @@
+asset:
+  database: raw
+  schema: scryfall
+  name: oracle
+  fileformat: util.public.parquet
+nature:
+  name: snapshot
+  unique_key: 'id'
+connection:
+  kind: scryfall
+parameters:
+  max_rows: 0
