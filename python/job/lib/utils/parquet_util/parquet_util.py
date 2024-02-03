@@ -1,5 +1,8 @@
 # utility for reading parquet files
 import pandas as pd
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ParquetUtil:
     def __init__(self, parquet_file):
@@ -12,7 +15,9 @@ class ParquetUtil:
         df = pd.read_parquet(self.parquet_file)
         # split the file as many times as needed
         splitfiles = []
+        logging.info('Splitting the file into %s row chunks' % rows)
         for i in range(0, len(df), rows):
+            logging.info('Writing %s to %s' % (i,i+rows))
             df_part = df[i:i+rows]
             df_part.to_parquet(self.parquet_file+'_part_'+ str(i) + '.parquet')
             splitfiles.append(self.parquet_file+'_part_'+ str(i) + '.parquet')

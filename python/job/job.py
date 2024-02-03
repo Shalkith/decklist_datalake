@@ -104,11 +104,11 @@ loadfiles = split.split_file()
 #load the data into the database
 db = DBLoadUtil(db_folder)
 
-for file in loadfiles:
-    if nature == 'incremental':
-        db.load_data(job['asset']['name'],file,nature,end_date,job['nature']['unique_key'])
-    else:
-        db.load_data(job['asset']['name'],file,nature,end_date)
+
+if nature == 'incremental':
+    db.load_data(job['asset']['name'],loadfiles,nature,end_date,job['nature']['unique_key'])
+else:
+    db.load_data(job['asset']['name'],loadfiles,nature,end_date)
 
 #delete the loadfiles when done 
 for file in loadfiles:

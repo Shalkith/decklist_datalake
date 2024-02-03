@@ -24,24 +24,16 @@ for runs in previousruns:
 
     db = DBLoadUtil(db_folder)
     path_to_parquet = os.path.join(output_folder,str(runs),job['asset']['name']+'.parquet')
-
-    
     split = ParquetUtil(path_to_parquet)
     loadfiles = split.split_file()
-
     #load the data into the database
     
+    logging.info('Loading %s into the database' % path_to_parquet)
 
-    for file in loadfiles:
-
-        logging.info('Loading %s into the database' % file)
-
-        if nature == 'incremental':
-            db.load_data(job['asset']['name'],file,nature,runs,job['nature']['unique_key'])
-        else:
-            db.load_data(job['asset']['name'],file,nature,runs)
-        
-        
+    if nature == 'incremental':
+        db.load_data(job['asset']['name'],loadfiles,nature,runs,job['nature']['unique_key'])
+    else:
+        db.load_data(job['asset']['name'],loadfiles,nature,runs)
     #delete the loadfiles when done 
     for file in loadfiles:
         os.remove(file)
