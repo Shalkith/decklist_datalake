@@ -9,7 +9,7 @@ db_folder = '../../database/' # this is where the database will be located
 #jobfile = datasets_folder+'raw/moxfield/commander_decks_table.yaml' # sample arg that could be passed for testing
 #jobfile = datasets_folder+'raw/scryfall/oracle_table.yaml' # sample arg that could be passed for testing
 last_unix_time = 0 # this will be the last unix time of the last run
-
+dbt_folder = '../../dbt/mtg_datalake/' # this is where the dbt folder will be located
 
 
 def read_yaml(jobfile,output_folder):
