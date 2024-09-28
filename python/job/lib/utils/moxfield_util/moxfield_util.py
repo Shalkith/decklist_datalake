@@ -91,9 +91,16 @@ class MoxfieldUtil:
             # if deckid is in list, remove old one and add new one otherwise add new one
             if deck.id in self.scraped_decks['id'].values:
                 self.scraped_decks = self.scraped_decks[self.scraped_decks['id'] != deck.id]
-            self.scraped_decks = pd.concat([self.scraped_decks,pd.DataFrame({'id':deck.id,'lastupdated':data['lastUpdatedAtUtc'],'deckdata':str(data)},index=[0])])
+            try:
+                timestamped = str(datetime.datetime.strptime(data['lastUpdatedAtUtc'], '%Y-%m-%dT%H:%M:%S.%fZ'))
+            except:
+                timestamped = str(datetime.datetime.strptime(data['lastUpdatedAtUtc'], '%Y-%m-%dT%H:%M:%S%z'))
+
+            self.scraped_decks = pd.concat([self.scraped_decks,pd.DataFrame({"id":deck.id,"lastupdated":timestamped,"deckdata":json.dumps(data)},index=[0])])
+            
 
             print('Scraped deck:',data['name'],'- deck number', len(self.scraped_decks))
+            # only get 500
         #convert start date to timestamp then unix
         try:
             self.start_date = int(time.mktime(datetime.datetime.strptime(self.start_date, '%Y-%m-%d %H:%M:%S').timetuple()))
