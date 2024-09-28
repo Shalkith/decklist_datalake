@@ -1,12 +1,16 @@
 asset:
   database: raw
   schema: moxfield
-  name: pauperEdh_decks
+  name: pauperedh_decks
   fileformat: util.public.parquet
 nature:
   name: incremental
-  tombstone: last_updated
+  tombstone: lastupdated
   unique_key: 'id'
+history: true
+transform:
+  lastupdated: datetime
+  deckdata: dict
 connection:
   kind: moxfield
 parameters:

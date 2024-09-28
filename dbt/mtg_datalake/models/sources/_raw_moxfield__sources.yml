@@ -1,0 +1,25 @@
+version: 2
+sources:
+  - name: mtg_datalake
+    description: Raw data from Moxfield deck tracking site
+    database: mtg_datalake
+
+    tables:
+      - name: pauperedh_decks
+        description: contains decklists for pauper edh decks 
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data
+      - name: commander_decks
+        description: contains decklists for commander decks
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data
