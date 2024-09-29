@@ -11,6 +11,10 @@ db_folder = '../../database/' # this is where the database will be located
 last_unix_time = 0 # this will be the last unix time of the last run
 dbt_folder = '../../dbt/mtg_datalake/' # this is where the dbt folder will be located
 
+db_username = 'service_exlo'
+db_password = 'exlo'
+db_host = '192.168.99.109'
+db_type = 'mysql'
 
 def read_yaml(jobfile,output_folder):
     with open(jobfile, 'r') as f:
