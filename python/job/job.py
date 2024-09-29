@@ -5,7 +5,7 @@ import sys
 import logging
 import argparse
 import pandas as pd
-import time 
+import datetime 
 from job_configs import *
 
 os.chdir(os.path.dirname(__file__))
@@ -20,9 +20,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 #################################
 ############ Setup ##############
 
-
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
+#python3 .\job.py raw\moxfield\commander_decks_table.yaml
 try:
     jobfile
+    
 except:
     argparser = argparse.ArgumentParser(description='Job Manager')
     argparser.add_argument('jobfile', help='Job file to execute')
@@ -32,11 +34,14 @@ except:
     jobfile = os.path.join(datasets_folder, jobfile)
 
 
+
 if not os.path.exists(jobfile):
     logging.error('Job file does not exist: %s' % jobfile)
     sys.exit(1)
 
 job,output_folder,previousruns,nature = read_yaml(jobfile,output_folder)
+
+tablename = job['asset']['name']
 
 
 #create the db directory if it doesnt already exist
@@ -45,7 +50,14 @@ if not os.path.exists(db_folder):
 
 
 if nature == 'incremental':
-    tombstone = job['nature']['tombstone']    
+    tombstone = job['nature']['tombstone']
+    lastrun_conn = DBLoadUtil(db_folder,dbtype=db_type,user=db_username,password=db_password,host=db_host)
+    if job['history']:
+        lastrun = lastrun_conn.getlastruntime(tablename+'_history',tombstone)
+    else:
+        lastrun = lastrun_conn.getlastruntime(tablename,tombstone)     
+
+    print('lastrun:',lastrun)
 
 for run in previousruns:
     if run.isnumeric():
@@ -57,9 +69,15 @@ if last_unix_time > 0:
 else:
     start_date = 0
 
+if lastrun > start_date:
+    start_date = lastrun
+
+#print start date convert from unix to datetime
+s_date = datetime.datetime.fromtimestamp(start_date).strftime('%Y-%m-%d %H:%M:%S')
+print('start_date:',s_date)
 ############ End Setup ##########
 #################################
-    
+
 
 
 if nature == 'incremental':
@@ -102,16 +120,25 @@ split = ParquetUtil(path_to_parquet)
 loadfiles = split.split_file()
 
 #load the data into the database
-db = DBLoadUtil(db_folder)
+db = DBLoadUtil(db_folder,dbtype=db_type,user=db_username,password=db_password,host=db_host)
 
-
-if nature == 'incremental':
-    db.load_data(job['asset']['name'],loadfiles,nature,end_date,job['nature']['unique_key'])
-else:
-    db.load_data(job['asset']['name'],loadfiles,nature,end_date)
-
-#delete the loadfiles when done 
 for file in loadfiles:
+    if nature == 'incremental':    
+        db.load_data(job['asset']['name'],file,nature,end_date,job['nature']['unique_key'],job['transform'])
+    else:
+        db.load_data(job['asset']['name'],file,nature,end_date)
     os.remove(file)
-    
-   
+
+#remove the unsplit parquet file
+os.remove(path_to_parquet)
+#delete the parquet folder when done
+os.rmdir(os.path.join(output_folder,str(end_date)))
+
+#if files were loaded then run dbt commands    
+if len(loadfiles) > 0:
+    # execute dbt run
+    os.chdir(dbt_folder)
+    os.system('dbt run')
+    # now dbt snapshot if history arg is set to true
+    if job['history']:
+        os.system('dbt snapshot')
