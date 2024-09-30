@@ -10,7 +10,7 @@ class MoxfieldUtil:
         self.searchurl = "https://api2.moxfield.com/v2/decks/"
         self.deckurl = "https://api2.moxfield.com/v3/decks/all/"
         self.format = format.split('_')[0]
-        self.start_date = start_date
+        #self.start_date = start_date
         self.max_rows = max_rows
 
         #convert start date from unix to datetime
@@ -32,7 +32,11 @@ class MoxfieldUtil:
 
     def get_decks(self):
         page = 1 
-        url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Descending&fmt={}&board=mainboard'.format(page,self.format)
+        if self.start_date == 0:
+            self.direction = 'Ascending'
+        else:
+            self.direction = 'Descending'
+        url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}&fmt={}&board=mainboard'.format(page,self.direction,self.format)
         response = requests.get(url, headers=self.headers)
         data = json.loads(response.text)
         total_pages = data['totalPages']
@@ -43,7 +47,7 @@ class MoxfieldUtil:
 
         while page <= total_pages and not stop:
             decksfound = False
-            url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection=Descending&fmt={}&board=mainboard'.format(page,self.format)
+            url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}&fmt={}&board=mainboard'.format(page,self.direction,self.format)
             response = requests.get(url, headers=self.headers)
             data = json.loads(response.text)
             for deck in data['data']:
@@ -62,13 +66,11 @@ class MoxfieldUtil:
                         stop = True
                 else:
                     pass
-            
             page += 1  
             if not decksfound:
                 pages_without_decks += 1
             if pages_without_decks > 5:
                 stop = True
-                  
         return self.scrape_decks()
     
     def scrape_decks(self):
