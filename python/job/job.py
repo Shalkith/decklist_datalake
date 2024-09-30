@@ -20,8 +20,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 #################################
 ############ Setup ##############
 
-jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
-#python3 .\job.py raw\moxfield\pauperedh_decks_table.yaml
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
+#python3 .\job.py raw\moxfield\commander_decks_table.yaml
 try:
     jobfile
     
@@ -117,14 +117,18 @@ parquetdata.to_parquet(os.path.join(output_folder,str(end_date),job['asset']['na
 path_to_parquet = os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet')
 
 split = ParquetUtil(path_to_parquet)
-loadfiles = split.split_file()
+loadfiles = split.split_file(rows=100)
 
 #load the data into the database
 db = DBLoadUtil(db_folder,dbtype=db_type,user=db_username,password=db_password,host=db_host,history=job['history'])
 
 for file in loadfiles:
+    if file == loadfiles[0]:
+        first_file = True
+    else:
+        first_file = False
     if nature == 'incremental':    
-        db.load_data(job['asset']['name'],file,nature,end_date,job['nature']['unique_key'],job['transform'])
+        db.load_data(job['asset']['name'],file,nature,end_date,job['nature']['unique_key'],job['transform'],firstfile=first_file)
     else:
         db.load_data(job['asset']['name'],file,nature,end_date)
     os.remove(file)
@@ -141,4 +145,4 @@ if len(loadfiles) > 0:
     os.system('dbt run')
     # now dbt snapshot if history arg is set to true
     if job['history']:
-        os.system('dbt snapshot')
+        os.system('dbt snapshot -s {}_history'.format(tablename))
