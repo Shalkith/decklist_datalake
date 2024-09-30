@@ -20,8 +20,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 #################################
 ############ Setup ##############
 
-#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
-#python3 .\job.py raw\moxfield\commander_decks_table.yaml
+jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
+#python3 .\job.py raw\moxfield\pauperedh_decks_table.yaml
 try:
     jobfile
     
@@ -120,7 +120,7 @@ split = ParquetUtil(path_to_parquet)
 loadfiles = split.split_file()
 
 #load the data into the database
-db = DBLoadUtil(db_folder,dbtype=db_type,user=db_username,password=db_password,host=db_host)
+db = DBLoadUtil(db_folder,dbtype=db_type,user=db_username,password=db_password,host=db_host,history=job['history'])
 
 for file in loadfiles:
     if nature == 'incremental':    
