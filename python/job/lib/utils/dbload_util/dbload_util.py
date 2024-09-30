@@ -9,29 +9,31 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class DBLoadUtil:
-    def __init__(self,dbpath,dbtype='mysql',user='database_username',password='database_password',host='database_host'):
+    def __init__(self,dbpath,dbtype='mysql',user='database_username',password='database_password',host='database_host',history=False):
 
         self.user = user
         self.password = password
         self.host = host
         self.dbtype = dbtype
+        self.history = history
 
     def connect(self):
         if self.dbtype == 'mariadb':
-            self.db_conn = sqlalchemy.create_engine(
+            self.engine = sqlalchemy.create_engine(
                 'mariadb+mariadbconnector://{}:{}@{}:3306/mtg_datalake'.format(self.user, self.password, self.host)
             )
         elif  self.dbtype == 'mysql':
-            self.db_conn = sqlalchemy.create_engine(
+            self.engine = sqlalchemy.create_engine(
                 'mysql+mysqlconnector://{}:{}@{}:3306/mtg_datalake'.format(self.user, self.password, self.host)
             )
         else:
             logging.error('Database type not supported: %s' % self.dbtype)
             sys.exit(1)
-        self.db_conn = self.db_conn.connect()
+        self.db_conn = self.engine.connect()
     
     def close_connection(self):
         self.db_conn.close()
+        self.engine.dispose()
 
         
     def getlastruntime(self,table_name,tombstone):
@@ -50,8 +52,8 @@ class DBLoadUtil:
         
         return last_unix_time
 
-    def load_data(self, table_name, filepath,table_nature,end_date,index_name=False,transform=False,tombstone=False):
-        self.connect()
+    def load_data(self, table_name, filepath,table_nature,end_date,index_name=False,transform=False,tombstone=False,firstfile=True):
+        
         #load the data
         debug = True
         datafile = ParquetUtil(filepath)
@@ -84,10 +86,16 @@ class DBLoadUtil:
             if debug:
                 print('dropping duplicates')
             dataframe = dataframe.drop_duplicates(subset=[index_name], keep='last')
+        #connect to the database
+        self.connect()
         #if nature is snapshot, truncate the table then load the data
         
         if table_nature == 'snapshot':
-            self.db_conn.execute('delete from %s' % table_name)
+            #self.db_conn.execute('delete from %s' % table_name)
+            if firstfile:
+                #truncate the table
+                self.db_conn.execute(sqlalchemy.text('truncate table %s' % table_name))
+                self.db_conn.commit()         
             #load the data to the table - use long text for json columns
             dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
             print('Data loaded into table:',table_name)
@@ -103,28 +111,35 @@ class DBLoadUtil:
             #load the data to the table
             if debug:
                 print('upserting data')
+            if self.history and firstfile:
+               #delete old data if incremental data contains history - historic data will be stored in dbt snapshots
+               # sqlalchemy.delete(table_name)      
+               self.db_conn.execute(sqlalchemy.text('truncate table %s' % table_name))
+               self.db_conn.commit()
+
 
             #when creating the table ensure the decklistdata column is json
-            dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})           
+            #dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})           
+            try:
+                dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
+            except Exception as e:
+                print(e)
+                print('Error inserting data into table:',table_name)
+                errorcount = 0
+                for row in dataframe.itertuples():
+                    #keep column names
+                    try:
+                        tempdf = dataframe.loc[dataframe[index_name] == row.id]
+                        tempdf.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
+                        print('Deck {} inserted into table: {}'.format(row.id,table_name))
+                    except Exception as e:
+                        errorcount += 1
+                        print('Error inserting deck:',row.id)
+                        print(e)
+
+            #dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False)           
             
             # remove duplicates from the table
             print('Data inserted into table:',table_name)
         self.close_connection()
 
-if __name__ == '__main__':
-    # db path
-    import os
-    os.chdir(os.path.dirname(__file__))
-    dbpath = input('Enter the db path: ')
-    table_name = input('Enter the table name: ')
-    filepath = input('Enter the parquet file to load: ')
-    table_nature = input('Enter the table nature: ')
-    index_name = input('Enter the index name: ')
-    if index_name == '':
-        index_name = False
-    tombstone = input('Enter the tombstone: ')
-    if tombstone == '':
-        tombstone = False
-    dbload = DBLoadUtil(dbpath)
-    dbload.load_data(table_name, filepath,table_nature,index_name,tombstone)
-    print('Data loaded into table:',table_name)        
