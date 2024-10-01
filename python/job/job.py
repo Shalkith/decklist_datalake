@@ -133,10 +133,11 @@ for file in loadfiles:
         db.load_data(job['asset']['name'],file,nature,end_date)
     os.remove(file)
 
-#remove the unsplit parquet file
-os.remove(path_to_parquet)
-#delete the parquet folder when done
-os.rmdir(os.path.join(output_folder,str(end_date)))
+if delete_source_parquet:
+    #remove the unsplit parquet file
+    os.remove(path_to_parquet)
+    #delete the parquet folder when done
+    os.rmdir(os.path.join(output_folder,str(end_date)))
 
 #if files were loaded then run dbt commands    
 if len(loadfiles) > 0:

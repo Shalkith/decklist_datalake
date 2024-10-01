@@ -15,6 +15,8 @@ db_username = 'service_exlo'
 db_password = 'exlo'
 db_host = '192.168.99.109'
 db_type = 'mysql'
+delete_source_parquet = False
+
 
 def read_yaml(jobfile,output_folder):
     with open(jobfile, 'r') as f:
