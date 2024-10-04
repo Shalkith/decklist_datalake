@@ -10,6 +10,7 @@ from job_configs import *
 
 os.chdir(os.path.dirname(__file__))
 from lib.utils.moxfield_util.moxfield_util import MoxfieldUtil
+from lib.utils.commanderspellbook_util.commandespellbook_util import CommanderSpellbookUtil
 from lib.utils.scryfall_util.scryfall_util import ScryfallUtil
 from lib.utils.dbload_util.dbload_util import DBLoadUtil
 from lib.utils.parquet_util.parquet_util import ParquetUtil
@@ -20,6 +21,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 #################################
 ############ Setup ##############
 
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\historicbrawl_decks_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
 #python3 .\job.py raw\moxfield\commander_decks_table.yaml
 try:
@@ -58,6 +60,8 @@ if nature == 'incremental':
         lastrun = lastrun_conn.getlastruntime(tablename,tombstone)     
 
     print('lastrun:',lastrun)
+else:
+    lastrun = 0
 
 for run in previousruns:
     if run.isnumeric():
@@ -71,6 +75,10 @@ else:
 
 if lastrun > start_date:
     start_date = lastrun
+
+#temp
+if full_load: 
+    start_date = 0
 
 #print start date convert from unix to datetime
 s_date = datetime.datetime.fromtimestamp(start_date).strftime('%Y-%m-%d %H:%M:%S')
@@ -93,11 +101,15 @@ if nature == 'incremental':
         sys.exit(1)
 
 if nature == 'snapshot':
+    end_date = 0
     logging.info('Executing snapshot job: %s' % jobfile)
     if job['connection']['kind'] == 'scryfall':
         scry = ScryfallUtil(start_date)
         parquetdata,end_date = scry.get_bulk_oracle_data()
-
+    elif job['connection']['kind'] == 'commanderspellbook':
+        csbook = CommanderSpellbookUtil(job['asset']['api_format'])
+        parquetdata = csbook.get_combos()
+        
     else:    
         logging.error('Connection kind not supported: %s' % job['connection']['kind'])
         sys.exit(1)
@@ -130,7 +142,7 @@ for file in loadfiles:
     if nature == 'incremental':    
         db.load_data(job['asset']['name'],file,nature,end_date,job['nature']['unique_key'],job['transform'],firstfile=first_file)
     else:
-        db.load_data(job['asset']['name'],file,nature,end_date)
+        db.load_data(job['asset']['name'],file,nature,end_date,firstfile=first_file)
     os.remove(file)
 
 if delete_source_parquet:
