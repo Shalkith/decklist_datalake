@@ -1,0 +1,26 @@
+version: 2
+sources:
+  - name: mtg_datalake
+    description: Raw data from Moxfield deck tracking site
+    database: mtg_datalake
+
+    tables:
+      - name: pauper_commander_combos
+        description: contains comboos for pedh decs
+        columns:
+          - name: id
+            description: unique identifier for the combo
+          - name: status
+            description: status
+          - name: combodata
+            description: dictionary of combo data
+      - name: commander_combos
+        description: contains comboos for edh decs
+        columns:
+          - name: id
+            description: unique identifier for the combo
+          - name: status
+            description: status
+          - name: combodata
+            description: dictionary of combo data
+     

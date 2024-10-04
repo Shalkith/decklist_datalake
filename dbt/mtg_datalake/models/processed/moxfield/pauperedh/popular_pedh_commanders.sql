@@ -5,7 +5,7 @@ SELECT id,
     JSON_UNQUOTE(JSON_EXTRACT(deckdata, CONCAT('$.boards.commanders.cards.', `key`, '.card.name'))) 
     ORDER BY JSON_UNQUOTE(JSON_EXTRACT(deckdata, CONCAT('$.boards.commanders.cards.', `key`, '.card.name'))) SEPARATOR ' & '
   ) AS commander_names
-FROM `mtg_datalake`.`pauperedh_decks_history`,
+FROM `mtg_datalake`.`historicbrawl_decks_history`,
   JSON_TABLE(
     JSON_KEYS(JSON_EXTRACT(deckdata, '$.boards.commanders.cards')),
     '$[*]' COLUMNS (`key` VARCHAR(255) PATH '$')

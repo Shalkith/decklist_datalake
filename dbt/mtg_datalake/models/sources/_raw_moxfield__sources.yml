@@ -23,6 +23,15 @@ sources:
             description: timestamp of the last update
           - name: deckdata
             description: dictionary of deck data
+      - name: historicbrawl_decks
+        description: contains decklists for historicbrawl decks
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data            
       - name: commanderprecons_decks
         description: contains decklists for commander precon decks
         columns:

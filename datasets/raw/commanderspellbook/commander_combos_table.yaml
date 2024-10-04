@@ -1,0 +1,13 @@
+asset:
+  database: raw
+  schema: commanderspellbook
+  name: commander_combos
+  api_format: commander
+  fileformat: util.public.parquet
+nature:
+  name: snapshot
+history: true  
+connection:
+  kind: commanderspellbook
+parameters:
+  max_rows: 0
