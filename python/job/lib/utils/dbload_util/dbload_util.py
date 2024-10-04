@@ -60,7 +60,7 @@ class DBLoadUtil:
         dataframe = datafile.read_parquet()
         if debug:
             print('checking for transform')
-        if transform:
+        if transform and False:
             #for each key in the transform dictionary, apply the value type to the column
             for key in transform:
                 if transform[key] == 'datetime':
@@ -78,6 +78,7 @@ class DBLoadUtil:
                     dataframe[key] = dataframe[key].apply(json.dumps)
                 if transform[key] == 'dict':
                     dataframe[key] = dataframe[key].apply(json.dumps)
+
         if debug:
             print(dataframe.head())
             print(index_name)
@@ -94,8 +95,11 @@ class DBLoadUtil:
             #self.db_conn.execute('delete from %s' % table_name)
             if firstfile:
                 #truncate the table
-                self.db_conn.execute(sqlalchemy.text('truncate table %s' % table_name))
-                self.db_conn.commit()         
+                try:
+                    self.db_conn.execute(sqlalchemy.text('truncate table %s' % table_name))
+                    self.db_conn.commit()         
+                except:
+                    pass
             #load the data to the table - use long text for json columns
             dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
             print('Data loaded into table:',table_name)
@@ -113,13 +117,18 @@ class DBLoadUtil:
                 print('upserting data')
             if self.history and firstfile:
                #delete old data if incremental data contains history - historic data will be stored in dbt snapshots
-               # sqlalchemy.delete(table_name)      
-               self.db_conn.execute(sqlalchemy.text('truncate table %s' % table_name))
-               self.db_conn.commit()
+               # sqlalchemy.delete(table_name) 
+                try:
+                   self.db_conn.execute(sqlalchemy.text('truncate table %s' % table_name))
+                   self.db_conn.commit()
+                except:
+                   pass
 
 
             #when creating the table ensure the decklistdata column is json
-            #dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})           
+            #dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
+            print('loading.....')
+            print(dataframe.head())
             try:
                 dataframe.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
             except Exception as e:
