@@ -42,7 +42,7 @@ models:
       +schema: analytics
       +materialized: table
     processed:
-      +materialized: view
+      +materialized: table
       +schema: processed
       +tags: ['processed']
       moxfield:
