@@ -1,0 +1,21 @@
+version: 2
+sources:
+  - name: mtg_datalake
+    description: Raw data from MTGA Client
+    database: mtg_datalake
+
+    tables:
+      - name: aetherhub-export-helvault
+        description: MTGA Collection data exported from https://aetherhub.com/Collection/
+        columns:
+          - name: extras
+            description: unknown
+          - name: language
+            description: language code of the card
+          - name: name
+            description: name of the card
+          - name: quantity
+            description: quantity owned in MTGA
+          - name: scryfall_id
+            description: unique identifier for the card on Scryfall
+          
