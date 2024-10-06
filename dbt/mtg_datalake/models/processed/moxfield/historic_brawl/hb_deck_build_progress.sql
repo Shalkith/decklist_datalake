@@ -15,8 +15,12 @@ where name is not NULL
 group by 1
 having sum(quantity) <= 100
 )
-select q.*,d.commander, d.name as deckname, d.publicurl,
-d.commentcount, d.likecount, d.viewcount, d.lastupdated
+select q.id,d.commander, d.name as deckname, q.quantity as percent_complete,
+(d.commentcount * 1) commentcount,  
+(d.likecount * 1) likecount,  
+(d.viewcount * 1) viewcount, 
+d.publicurl,
+d.lastupdated 
   from quantitycheck q
 left join {{ref('hb_deck_details')}} d
 on q.id = d.id
