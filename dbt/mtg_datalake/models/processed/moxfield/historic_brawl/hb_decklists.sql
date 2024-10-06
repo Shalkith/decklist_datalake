@@ -1,19 +1,58 @@
-with 
-commanders as (
-    select * from {{ ref('hb_board_commanders') }}
-),
-mainboard as (
-    select * from {{ ref('hb_board_mainboard') }}
-),
-companions as (
-    select * from {{ ref('hb_board_companions') }}
-),
-final as (
-    select *,'Commander' as type from commanders
-    union all
-    select *,'Mainboard' as type from mainboard
-    union all
-    select *,'Companion' as type from companions
-)
-select * from final
+{{ config(
+    materialized = "view"
+) }}
 
+WITH commanders AS (
+
+    SELECT * FROM {{ ref('hb_board_commanders') }}
+),
+mainboard AS (
+    SELECT * FROM {{ ref('hb_board_mainboard') }}
+),
+companions AS (
+    SELECT * FROM {{ ref('hb_board_companions') }}
+),
+FINAL AS (
+    SELECT
+        *,
+        'Commander' AS TYPE
+    FROM
+        commanders
+    UNION ALL
+    SELECT
+        *,
+        'Mainboard' AS TYPE
+    FROM
+        mainboard
+    UNION ALL
+    SELECT
+        *,
+        'Companion' AS TYPE
+    FROM
+        companions
+),
+quantity_validate AS (
+    SELECT
+        DISTINCT id
+    FROM
+        FINAL d
+    GROUP BY
+        1
+    HAVING
+        SUM(quantity) = 100
+)
+SELECT
+    *
+FROM
+    FINAL
+WHERE
+    id IN (
+        SELECT
+            *
+        FROM
+            quantity_validate
+    )
+ORDER BY
+    1,
+    5 ASC,
+    4 DESC
