@@ -44,14 +44,20 @@ models:
     processed:
       +materialized: table
       +schema: processed
-      +tags: ['processed']
+      +tags:
+        - processed
       moxfield:
-        +tags: ['moxfield']
+        +tags: 
+          - moxfield
         pauperedh:
-          +tags: ['pauperedh']
+          +tags:
+            - pauperedh
         commander:
-          +tags: ['commander']
-        
+          +tags:
+            - commander
+        historic_brawl:
+          +tags:
+            - brawl
       
 
 snapshots:
@@ -59,10 +65,17 @@ snapshots:
     +target_database: "mtg_datalake"
     +target_schema: "mtg_datalake"    
     raw:
-      +tags: ['raw']
+      +tags: 
+        - raw
       moxfield:
-        +tags: ['moxfield']
+        +tags: 
+          - moxfield
         commander:
-          +tags: ['commander']
+          +tags:
+            - commander
         pauperedh:
-          +tags: ['pauperedh']
+          +tags: 
+            - pauperedh
+        historic_brawl:
+          +tags:
+            - brawl
