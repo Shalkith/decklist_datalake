@@ -23,4 +23,13 @@ sources:
             description: status
           - name: combodata
             description: dictionary of combo data
+      - name: historicbrawl_combos
+        description: contains comboos for edh decs
+        columns:
+          - name: id
+            description: unique identifier for the combo
+          - name: status
+            description: status
+          - name: combodata
+            description: dictionary of combo data
      
