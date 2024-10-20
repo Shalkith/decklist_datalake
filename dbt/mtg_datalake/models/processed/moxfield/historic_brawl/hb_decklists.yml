@@ -1,0 +1,7 @@
+version: 2
+models:
+  - name: hb_decklists
+    description: Sample Description
+    columns:
+      - name: ID
+        description: ''

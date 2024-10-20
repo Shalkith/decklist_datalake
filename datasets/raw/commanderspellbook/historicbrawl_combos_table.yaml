@@ -1,0 +1,13 @@
+asset:
+  database: raw
+  schema: commanderspellbook
+  name: historicbrawl_combos
+  api_format: brawl
+  fileformat: util.public.parquet
+nature:
+  name: snapshot
+history: true  
+connection:
+  kind: commanderspellbook
+parameters:
+  max_rows: 0
