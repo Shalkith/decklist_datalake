@@ -155,7 +155,7 @@ if delete_source_parquet:
 if len(loadfiles) > 0:
     # execute dbt run
     os.chdir(dbt_folder)
-    os.system('dbt run')
+    # os.system('dbt run')
     # now dbt snapshot if history arg is set to true
     if job['history']:
         os.system('dbt snapshot -s {}_history'.format(tablename))
