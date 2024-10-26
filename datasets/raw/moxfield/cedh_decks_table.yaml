@@ -1,19 +1,20 @@
 asset:
   database: raw
   schema: moxfield
-  name: pauperedh_decks
+  name: cedh_decks
   fileformat: util.public.parquet
 nature:
   name: incremental
   tombstone: lastupdated
   unique_key: 'id'
-history: true
+history: true  
 transform:
   lastupdated: datetime
-  deckdata: dict
+  deckdata: dict  
 connection:
   kind: moxfield
 parameters:
   max_rows: 0
 filters:
-  fmt: pauperedh
+  hubName: Competitive
+  fmt: commander

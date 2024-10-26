@@ -15,3 +15,5 @@ connection:
   kind: moxfield
 parameters:
   max_rows: 0
+filters:
+  fmt: historicbrawl

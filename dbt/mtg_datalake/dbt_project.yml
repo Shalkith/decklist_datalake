@@ -58,6 +58,9 @@ models:
         historic_brawl:
           +tags:
             - brawl
+        cedh:
+          +tags:
+           - cedh
       
 
 snapshots:

@@ -6,12 +6,13 @@ import time
 
 class MoxfieldUtil:
 
-    def __init__(self,format,start_date,max_rows):
+    def __init__(self,format,start_date,max_rows,filters=None):
         self.searchurl = "https://api2.moxfield.com/v2/decks/"
         self.deckurl = "https://api2.moxfield.com/v3/decks/all/"
         self.format = format.split('_')[0]
         #self.start_date = start_date
         self.max_rows = max_rows
+        self.filters = filters 
 
         #convert start date from unix to datetime
         self.start_date = datetime.datetime.fromtimestamp(start_date).strftime('%Y-%m-%d %H:%M:%S')
@@ -36,7 +37,7 @@ class MoxfieldUtil:
             self.direction = 'Ascending'
         else:
             self.direction = 'Descending'
-        url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}&fmt={}&board=mainboard'.format(page,self.direction,self.format)
+        url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}{}&board=mainboard'.format(page,self.direction,self.filters)
         response = requests.get(url, headers=self.headers)
         data = json.loads(response.text)
         total_pages = data['totalPages']
@@ -47,7 +48,7 @@ class MoxfieldUtil:
 
         while page <= total_pages and not stop:
             decksfound = False
-            url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}&fmt={}&board=mainboard'.format(page,self.direction,self.format)
+            url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}{}&board=mainboard'.format(page,self.direction,self.filters)
             response = requests.get(url, headers=self.headers)
             data = json.loads(response.text)
             for deck in data['data']:

@@ -93,7 +93,14 @@ if nature == 'incremental':
     # get max unix time from folders in output_folder
     logging.info('Executing job: %s' % jobfile)
     if job['connection']['kind'] == 'moxfield':
-        mox = MoxfieldUtil(job['asset']['name'], start_date,job['parameters']['max_rows'])    
+        filters = ''
+        if job['filters']:
+            for filter in job['filters']:
+                print(job['filters'][filter])
+                filters += '&{}={}'.format(filter,job['filters'][filter])
+            mox = MoxfieldUtil(job['asset']['name'], start_date,job['parameters']['max_rows'],filters = filters)    
+        else:
+            mox = MoxfieldUtil(job['asset']['name'], start_date,job['parameters']['max_rows'])
         parquetdata,end_date = mox.get_decks()
 
     else:    
