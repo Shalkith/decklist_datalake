@@ -41,3 +41,12 @@ sources:
             description: timestamp of the last update
           - name: deckdata
             description: dictionary of deck data
+      - name: cedh_decks
+        description: contains decklists for CEDH decks
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data            
