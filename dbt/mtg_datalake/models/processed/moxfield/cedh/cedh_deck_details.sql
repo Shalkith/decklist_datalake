@@ -1,7 +1,7 @@
 with 
 decks as (
 select id ,
-JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.name')) as card_name,
+JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.name')) as deck_name,
 JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.description')) as description,
 JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.publicUrl')) as publicurl,
 JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.likeCount')) as likecount,
@@ -22,7 +22,7 @@ distinct_cards as (
 )
 SELECT d.id as deck_id,
 c.card_name as commander_name,
-d.card_name,
+d.deck_name,
 description,
 dc.count+0 as card_count,
 d.colors,

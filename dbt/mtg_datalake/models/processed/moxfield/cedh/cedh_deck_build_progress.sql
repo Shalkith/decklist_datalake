@@ -15,7 +15,7 @@ when name like 'Wastes' then 99
 else quantity end as quantity 
 from {{ref('mtga_collection')}} mc ),
 combined as (
-select d.*,m.name from decks d left join mycards m on d.card = m.name and d.quantity <= m.quantity
+select d.*,m.name from decks d left join mycards m on d.card_name = m.name and d.quantity <= m.quantity
 ),
 quantitycheck as (
 select distinct deck_id, sum(quantity) quantity from combined 
@@ -23,7 +23,7 @@ where name is not NULL
 group by 1
 having sum(quantity) <= 100
 )
-select q.deck_id,d.commander, d.name as deckname,
+select q.deck_id,d.commander_name, d.deck_name,
 d.card_count,
  q.quantity as percent_complete,
  d.hubs,
@@ -35,5 +35,5 @@ d.publicurl,
 d.lastupdated 
   from quantitycheck q
 left join {{ref('cedh_deck_details')}} d
-on q.id = d.id
+on q.deck_id = d.deck_id
 order by quantity desc 
