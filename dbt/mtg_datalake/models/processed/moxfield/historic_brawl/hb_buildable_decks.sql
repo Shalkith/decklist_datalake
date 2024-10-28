@@ -24,12 +24,12 @@ combined AS (
     FROM
         decks d
         LEFT JOIN mycards m
-        ON d.card = m.name
+        ON d.card_name = m.name
         AND d.quantity <= m.quantity
 ),
 quantitycheck AS (
     SELECT
-        DISTINCT id
+        DISTINCT deck_id
     FROM
         combined
     WHERE
@@ -44,7 +44,7 @@ SELECT
 FROM
     combined
 WHERE
-    id IN (
+    deck_id IN (
         SELECT
             *
         FROM

@@ -1,7 +1,7 @@
 with 
 decks as (
 select id ,
-JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.name')) as name,
+JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.name')) as deck_name,
 JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.description')) as description,
 JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.publicUrl')) as publicurl,
 JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.likeCount')) as likecount,
@@ -14,15 +14,16 @@ JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.hubs'))  as hubs
 from {{ref('historicbrawl_decks_history')}} hdh where dbt_valid_to is null 
 ),
 commanders as (
-select id,card from {{ref('hb_board_commanders')}}
+    select deck_id,GROUP_CONCAT(card_name order by card_name asc SEPARATOR '[and]') as card_name from {{ref('cedh_board_commanders')}}
+    GROUP BY deck_id 
 ),
 distinct_cards as (
-    select id,count(distinct card) count from {{ref('hb_decklists')}}
+    select deck_id,count(distinct card_name) count from {{ref('hb_decklists')}}
     group by 1
 )
-SELECT d.id,
-c.card as commander,
-d.name,
+SELECT d.id as deck_id,
+c.card_name as commander_name,
+d.deck_name,
 description,
 dc.count+0 as card_count,
 d.colors,
@@ -34,5 +35,5 @@ d.lastupdated,
 d.createdat,
 hubs
 FROM decks d 
-left join commanders c on d.id = c.id
-left join distinct_cards dc on c.id = dc.id
+left join commanders c on d.id = c.deck_id
+left join distinct_cards dc on c.deck_id = dc.deck_id
