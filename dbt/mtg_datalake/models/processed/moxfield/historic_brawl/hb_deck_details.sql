@@ -14,7 +14,7 @@ JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.hubs'))  as hubs
 from {{ref('historicbrawl_decks_history')}} hdh where dbt_valid_to is null 
 ),
 commanders as (
-    select deck_id,GROUP_CONCAT(card_name order by card_name asc SEPARATOR '[and]') as card_name from {{ref('cedh_board_commanders')}}
+    select deck_id,GROUP_CONCAT(card_name order by card_name asc SEPARATOR '[and]') as card_name from {{ref('hb_board_commanders')}}
     GROUP BY deck_id 
 ),
 distinct_cards as (
