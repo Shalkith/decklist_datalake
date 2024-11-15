@@ -4,7 +4,7 @@ WITH decks AS (
     SELECT
         *
     FROM
-        {{ ref('pedh_decklists') }}
+        {{ ref('pedh_average_decks') }}
 ),
 mycards AS (
     SELECT
@@ -24,12 +24,13 @@ combined AS (
     FROM
         decks d
         LEFT JOIN mycards m
-        ON d.card_name = m.name
+        ON d.card = m.name
         AND d.quantity <= m.quantity
-),
+)
+,
 quantitycheck AS (
     SELECT
-        DISTINCT deck_id
+        DISTINCT commander
     FROM
         combined
     WHERE
@@ -40,11 +41,12 @@ quantitycheck AS (
         SUM(quantity) = 100
 )
 SELECT
-    *
+    *,
+    CONCAT(quantity,' ',card) as copy_paste
 FROM
     combined
 WHERE
-    deck_id IN (
+    commander IN (
         SELECT
             *
         FROM
@@ -52,5 +54,5 @@ WHERE
     )
 ORDER BY
     1,
-    5 ASC,
-    4 DESC
+    case when commander = card then 'a' else 'b' end asc,
+    3 deSC

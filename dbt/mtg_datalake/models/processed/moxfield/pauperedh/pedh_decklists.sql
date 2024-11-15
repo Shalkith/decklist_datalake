@@ -33,7 +33,7 @@ FINAL AS (
 ),
 quantity_validate AS (
     SELECT
-        DISTINCT id
+        DISTINCT deck_id
     FROM
         FINAL d
     GROUP BY
@@ -46,7 +46,7 @@ SELECT
 FROM
     FINAL
 WHERE
-    id IN (
+    deck_id IN (
         SELECT
             *
         FROM

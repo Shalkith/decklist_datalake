@@ -11,5 +11,5 @@ FROM {{ref('pauperedh_decks_history')}},
   ) AS t
 WHERE dbt_valid_to IS NULL 
 )
-SELECT id,card, format,quantity
+SELECT id as deck_id,card as card_name, format,quantity
 FROM decks
