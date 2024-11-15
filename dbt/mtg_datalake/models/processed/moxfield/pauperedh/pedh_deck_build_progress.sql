@@ -1,5 +1,12 @@
 
 with 
+prices as (
+select deck_id, sum(cost) as cost from (
+select hd.*,case when sp.min_usd*hd.quantity > 9999 or sp.min_usd*hd.quantity < 0 then 0 else sp.min_usd*hd.quantity end as cost
+from {{ref('pedh_decklists')}}  hd 
+left join  {{ref('scryfall_prices')}} sp on sp.name = hd.card_name 
+) sum group by 1 
+),
 decks as (
 select * from {{ref('pedh_decklists')}}
 ),
@@ -26,6 +33,7 @@ having sum(quantity) <= 100
 select q.deck_id,d.commander_name, d.deck_name,
 d.card_count,
  q.quantity as percent_complete,
+ p.cost as price ,
  d.hubs,
  d.description,
 (d.commentcount * 1) commentcount,  
@@ -36,4 +44,5 @@ d.lastupdated
   from quantitycheck q
 left join {{ref('pedh_deck_details')}} d
 on q.deck_id = d.deck_id
+left join prices p on p.deck_id = d.deck_id
 order by quantity desc 
