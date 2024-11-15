@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: mtg_datalake
+    description: data from scryfall
+    database: mtg_datalake
+
+    tables:
+      - name: oracle
+        description: data about cards
+        

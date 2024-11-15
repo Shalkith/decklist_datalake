@@ -61,6 +61,10 @@ models:
         cedh:
           +tags:
            - cedh
+      scryfall:
+        +tags:
+          - scryfall
+
       
 
 snapshots:
@@ -82,3 +86,7 @@ snapshots:
         historic_brawl:
           +tags:
             - brawl
+      scryfall:
+        +tags:
+          - scryfall
+      

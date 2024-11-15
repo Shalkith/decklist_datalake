@@ -3,6 +3,7 @@ import logging
 import sys,os,time,json,datetime
 import pandas as pd
 from lib.utils.parquet_util.parquet_util import ParquetUtil
+import numpy as np
 
 import logging
 
@@ -58,6 +59,26 @@ class DBLoadUtil:
         debug = True
         datafile = ParquetUtil(filepath)
         dataframe = datafile.read_parquet()
+
+
+                
+        # Assuming `dataframe` is the name of your DataFrame
+        for column in dataframe.columns:
+            if any(isinstance(val, np.ndarray) for val in dataframe[column]):
+                #print(f"Column '{column}' contains NumPy arrays.")
+                try:
+                    dataframe[column] = dataframe[column].apply(lambda x: json.dumps(x.tolist()) if isinstance(x, np.ndarray) else x)
+                except:
+                    dataframe[column] = dataframe[column].apply(lambda x: x[0] if isinstance(x, np.ndarray) else x)
+        
+            if any(isinstance(val, dict) for val in dataframe[column]):
+                #print(f"Column '{column}' contains dictionaries.")
+                dataframe[column] = dataframe[column].apply(lambda x: str(x))
+                #dataframe[column] = dataframe[column].apply(lambda x: json.dumps(json.dumps(x.tolist()) if isinstance(x, np.ndarray) else x) if isinstance(x, dict) else x)
+                
+            
+
+
         if debug:
             print('checking for transform')
         if transform and False:
@@ -151,4 +172,3 @@ class DBLoadUtil:
             # remove duplicates from the table
             print('Data inserted into table:',table_name)
         self.close_connection()
-
