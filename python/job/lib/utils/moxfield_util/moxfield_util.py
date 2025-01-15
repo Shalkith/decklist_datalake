@@ -3,6 +3,9 @@ import pandas as pd
 import json
 import datetime
 import time
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class MoxfieldUtil:
 
@@ -22,12 +25,16 @@ class MoxfieldUtil:
         'Authorization': 'Bearer undefined',  # Note: Authorization may need a valid token
         'Origin': 'https://www.moxfield.com',
         'Referer': 'https://www.moxfield.com/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': os.environ["moxfield_useragent"],
         'X-Moxfield-Version': '2024.01.02.1',
         # Add other necessary headers here
     }
         self.scraped_decks = pd.DataFrame(columns=['id','lastupdated','deckdata'])
-
+        self.pageSize='100'
+        self.sortType='updated'
+        self.board='mainboard'
+        
+        self.sleep_timer = 1 # Number of seconds to wait between api calls
     
         pass
 
@@ -47,6 +54,7 @@ class MoxfieldUtil:
         
 
         while page <= total_pages and not stop:
+            time.sleep(self.sleep_timer)
             decksfound = False
             url = self.searchurl + 'search?pageNumber={}&pageSize=100&sortType=updated&sortDirection={}{}&board=mainboard'.format(page,self.direction,self.filters)
             response = requests.get(url, headers=self.headers)
@@ -76,6 +84,7 @@ class MoxfieldUtil:
     
     def scrape_decks(self):
         for deck in self.decks.itertuples():
+            time.sleep(self.sleep_timer)
             if len(self.scraped_decks) >= self.max_rows and self.max_rows > 0:
                 break # only scrape up to max_rows
 
