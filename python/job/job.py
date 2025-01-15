@@ -14,6 +14,10 @@ from lib.utils.commanderspellbook_util.commandespellbook_util import CommanderSp
 from lib.utils.scryfall_util.scryfall_util import ScryfallUtil
 from lib.utils.dbload_util.dbload_util import DBLoadUtil
 from lib.utils.parquet_util.parquet_util import ParquetUtil
+from lib.utils.telegram_util.telegram_util import TelegramUtil
+
+from dotenv import load_dotenv
+load_dotenv()
 
 ## Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,7 +27,20 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\historicbrawl_decks_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\commanderspellbook\commander_combos_table.yaml'
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\commanderspellbook\historicbrawl_combos_table.yaml'
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\commanderspellbook\paupercommander_combos_table.yaml'
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\scryfall\oracle_table.yaml'
+
 #python3 .\job.py raw\moxfield\commander_decks_table.yaml
+
+#telegram bot for notifications 
+notifications = True
+if notifications:
+    notifier_bot  = TelegramUtil()
+
+
+
 try:
     jobfile
     
@@ -34,7 +51,6 @@ except:
     # load the job file
     jobfile = args.jobfile
     jobfile = os.path.join(datasets_folder, jobfile)
-
 
 
 if not os.path.exists(jobfile):
@@ -90,6 +106,8 @@ print('start_date:',s_date)
 
 if nature == 'incremental':
     logging.info('Executing incremental job: %s' % jobfile)
+    if notifications:
+        notifier_bot.send_message('Executing incremental job: %s' % jobfile)
     # get max unix time from folders in output_folder
     logging.info('Executing job: %s' % jobfile)
     if job['connection']['kind'] == 'moxfield':
@@ -105,11 +123,15 @@ if nature == 'incremental':
 
     else:    
         logging.error('Connection kind not supported: %s' % job['connection']['kind'])
+        if notifications:
+            notifier_bot.send_message('Connection kind not supported: %s' % job['connection']['kind'])
         sys.exit(1)
 
 if nature == 'snapshot':
     end_date = 0
     logging.info('Executing snapshot job: %s' % jobfile)
+    if notifications:
+        notifier_bot.send_message('Executing snapshot job: %s' % jobfile)
     if job['connection']['kind'] == 'scryfall':
         scry = ScryfallUtil(start_date)
         parquetdata,end_date = scry.get_bulk_oracle_data()
@@ -119,6 +141,9 @@ if nature == 'snapshot':
         
     else:    
         logging.error('Connection kind not supported: %s' % job['connection']['kind'])
+        if notifications:
+            notifier_bot.send_message('Connection kind not supported: %s' % job['connection']['kind'])
+
         sys.exit(1)
 #convert data to parquet and save to output folder / enddate / data.parquet
 # make the end_date folder if it does not exist
@@ -129,6 +154,8 @@ if not os.path.exists(os.path.join(output_folder,str(end_date))):
 else:
     #stop the job we dont want to overwrite data
     logging.error('Job already exists for this date: %s' % str(end_date))
+    if notifications:
+        notifier_bot.send_message('Job already exists for this date: %s' % str(end_date))
     sys.exit(1)
 
 
@@ -166,3 +193,7 @@ if len(loadfiles) > 0:
     # now dbt snapshot if history arg is set to true
     if job['history']:
         os.system('dbt snapshot -s {}_history'.format(tablename))
+
+if notifications:
+    notifier_bot.send_message('Data load Completed for {} on {}'.format(job['asset']['name'], end_date))
+        
