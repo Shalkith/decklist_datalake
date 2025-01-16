@@ -50,3 +50,13 @@ sources:
             description: timestamp of the last update
           - name: deckdata
             description: dictionary of deck data            
+      - name: budget_edh_decks
+        description: contains decklists for Budget EDH decks
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data    
+
