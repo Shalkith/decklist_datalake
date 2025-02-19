@@ -1,9 +1,7 @@
 # create a library to send notifications to the user via telegram
 
-import telegram 
-from telegram import Update
-import asyncio
 import os 
+import requests
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -11,12 +9,13 @@ load_dotenv()
 
 
 class TelegramUtil:
-    def __init__(self):
-        self.bot = telegram.Bot(token = os.environ['telegram_token'])        
+    def __init__(self):     
         self.chat_id = os.environ['telegram_channel']
+        self.token = os.environ['telegram_token']
 
     def send_message(self, message):
-        asyncio.run(self.bot.send_message(self.chat_id,message))
+        self.endpoint = f'https://api.telegram.org/bot{self.token}/sendMessage?chat_id={self.chat_id}&text={message}'
+        requests.get(self.endpoint )
 
 
 if __name__ == "__main__":
