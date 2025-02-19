@@ -41,9 +41,11 @@ class DBLoadUtil:
         self.connect()
         try:
             last_unix_time = pd.read_sql('select max(%s) from %s' % (tombstone,table_name), self.db_conn)
+            
             last_unix_time = last_unix_time.iloc[0,0]
             #convert the last run time to a unix timestamp
-            last_unix_time = int(time.mktime(datetime.datetime.strptime(str(last_unix_time), '%Y-%m-%d %H:%M:%S').timetuple()))
+            # '2025-02-19 22:09:49.670000'
+            last_unix_time = int(time.mktime(datetime.datetime.strptime(str(last_unix_time), '%Y-%m-%d %H:%M:%S.%f').timetuple()))
         except Exception as e:
             print(e)
             logging.error('Error getting last run time: %s' % e)
