@@ -1,0 +1,1 @@
+{{top_cards_sql('hb_decklists')}}

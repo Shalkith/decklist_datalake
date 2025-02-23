@@ -1,0 +1,1 @@
+{{top_commanders('pedh_deck_details')}}

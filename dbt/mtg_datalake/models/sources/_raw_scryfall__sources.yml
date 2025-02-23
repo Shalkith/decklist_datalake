@@ -8,3 +8,5 @@ sources:
       - name: oracle
         description: data about cards
         
+      - name: scryfall_images
+        description: image url lookup for card names

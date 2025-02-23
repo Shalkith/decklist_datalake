@@ -67,6 +67,10 @@ models:
       scryfall:
         +tags:
           - scryfall
+      web_resources:
+        +tags:
+          - web
+
 
       
 
