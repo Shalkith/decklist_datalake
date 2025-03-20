@@ -1,4 +1,4 @@
-{% snapshot historicbrawl_decks_history %}
+{% snapshot hb_decks_history %}
 {{
     config(
       unique_key='id',
@@ -6,7 +6,8 @@
       check_cols='all',
       invalidate_hard_deletes=True,
       target_database='mtg_datalake',
-      target_schema='mtg_datalake'
+      target_schema='mtg_datalake',
+      alias='historicbrawl_decks_history'
     )
 }}
 
