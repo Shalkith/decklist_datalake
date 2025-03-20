@@ -59,6 +59,15 @@ sources:
             description: timestamp of the last update
           - name: deckdata
             description: dictionary of deck data    
+      - name: commander_celesruneknight_decks
+        description: contains decklists for Celes, Rune Knight commander decks
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data
       - name: commander_terraheraldofhope_decks
         description: contains decklists for Terra, Herald of Hope commander decks
         columns:
@@ -68,3 +77,12 @@ sources:
             description: timestamp of the last update
           - name: deckdata
             description: dictionary of deck data
+      - name: predh_decks
+        description: contains decklists for Pre-EDH decks
+        columns:
+          - name: id
+            description: unique identifier for the deck
+          - name: lastupdated
+            description: timestamp of the last update
+          - name: deckdata
+            description: dictionary of deck data               
