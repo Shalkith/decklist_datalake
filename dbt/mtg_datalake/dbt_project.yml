@@ -98,5 +98,27 @@ snapshots:
             - brawl
       scryfall:
         +tags:
+          - scryfall  
+    processed:
+      +schema: processed
+      +tags: 
+        - processed
+      moxfield:
+        +tags: 
+          - moxfield
+        commander:
+          +tags:
+            - commander
+        budget_edh:
+          +tags:
+            - budget_edh
+        pauperedh:
+          +tags: 
+            - pauperedh
+        historic_brawl:
+          +tags:
+            - brawl
+      scryfall:
+        +tags:
           - scryfall
       
