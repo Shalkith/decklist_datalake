@@ -1,4 +1,4 @@
-{% snapshot pauperedh_decks_history %}
+{% snapshot pedh_decks_history %}
 {{
     config(
       unique_key='id',
