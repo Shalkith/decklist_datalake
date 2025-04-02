@@ -3,26 +3,26 @@
 
 WITH 
 latest_commanders AS (
-    SELECT deck_id,max(lastupdated) lastupdated FROM {{ ref(tablename+'_board_commanders') }}
+    SELECT deck_id,max(lastupdated) lastupdated FROM {{ ref(tablename+'_board_commanders') }} group  by 1
 ),
 latest_mainboard AS (
-    SELECT deck_id,max(lastupdated) lastupdated FROM {{ ref(tablename+'_board_mainboard') }}
+    SELECT deck_id,max(lastupdated) lastupdated FROM {{ ref(tablename+'_board_mainboard') }} group  by 1
 ),
 latest_companions AS (
-    SELECT deck_id,max(lastupdated) lastupdated FROM {{ ref(tablename+'_board_companions') }}
+    SELECT deck_id,max(lastupdated) lastupdated FROM {{ ref(tablename+'_board_companions') }} group  by 1
 ),
 commanders AS (
-    SELECT * FROM {{ ref(tablename+'_board_commanders') }}
+    SELECT commanders.* FROM {{ ref(tablename+'_board_commanders') }} commanders
     inner join latest_commanders lc
     on commanders.deck_id = lc.deck_id and commanders.lastupdated = lc.lastupdated
 ),
 mainboard AS (
-    SELECT * FROM {{ ref(tablename+'_board_mainboard') }}
+    SELECT mainboard.* FROM {{ ref(tablename+'_board_mainboard') }} mainboard
     inner join latest_mainboard lm
     on mainboard.deck_id = lm.deck_id and mainboard.lastupdated = lm.lastupdated
 ),
 companions AS (
-    SELECT * FROM {{ ref(tablename+'_board_companions') }}
+    SELECT companions.* FROM {{ ref(tablename+'_board_companions') }} companions
     inner join latest_companions lcc
     on companions.deck_id = lcc.deck_id and companions.lastupdated = lcc.lastupdated
 ),

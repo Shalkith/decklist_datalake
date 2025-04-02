@@ -9,7 +9,7 @@
             json_unquote(json_extract(deckdata, '$.viewCount')) AS viewcount,
             json_unquote(json_extract(deckdata, '$.commentCount')) AS commentcount,
             json_unquote(json_extract(deckdata, '$.colors')) AS colors,
-            json_unquote(json_extract(deckdata, '$.lastUpdatedAtUtc')) AS lastupdated,
+            lastupdated,
             json_unquote(json_extract(deckdata, '$.createdAtUtc')) AS createdat,
             json_unquote(json_extract(deckdata, '$.hubs')) AS hubs
         FROM
@@ -17,6 +17,9 @@
             hdh
         WHERE
             dbt_valid_to IS NULL
+{% if is_incremental() %}
+    AND lastupdated > (SELECT MAX(lastupdated) FROM {{this}})
+ {% endif %}
     ),
     commanders AS (
         SELECT
