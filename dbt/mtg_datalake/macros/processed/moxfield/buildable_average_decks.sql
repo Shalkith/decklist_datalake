@@ -1,5 +1,5 @@
 
-{% macro board_average_decks(tablename) %}
+{% macro buildable_average_decks(tablename) %}
 
 
 WITH decks AS (
