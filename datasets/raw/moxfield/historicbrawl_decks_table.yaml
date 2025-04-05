@@ -8,6 +8,7 @@ nature:
   tombstone: lastupdated
   unique_key: 'id'
 history: true  
+history_table_prefix: hb_decks
 transform:
   lastupdated: datetime
   deckdata: dict  
