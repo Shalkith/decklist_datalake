@@ -27,10 +27,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\historicbrawl_decks_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\pauperedh_decks_table.yaml'
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\budget_edh_decks_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\commanderspellbook\commander_combos_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\commanderspellbook\historicbrawl_combos_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\commanderspellbook\paupercommander_combos_table.yaml'
 #jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\scryfall\oracle_table.yaml'
+#jobfile = r'C:\Users\pgwar\Downloads\github\decklist_datalake\datasets\raw\moxfield\commander_celesruneknight_decks_table.yaml'
 
 #python3 .\job.py raw\moxfield\commander_decks_table.yaml
 
@@ -192,8 +194,17 @@ if len(loadfiles) > 0:
     # os.system('dbt run')
     # now dbt snapshot if history arg is set to true
     if job['history']:
-        os.system('dbt snapshot -s {}_history'.format(tablename))
+        try:
+            hist_tablename = job['history_table_prefix']
+        except:
+            hist_tablename = tablename
+        os.system('dbt snapshot -s {}_history'.format(hist_tablename))
+
+rows = 0
+for file in loadfiles:
+    for row in file:
+        rows +=1
 
 if notifications:
-    notifier_bot.send_message('Data load Completed for {} on {}'.format(job['asset']['name'], end_date))
+    notifier_bot.send_message('Data load Completed for {} on {}. Loaded {} rows.'.format(job['asset']['name'], end_date, rows))
         

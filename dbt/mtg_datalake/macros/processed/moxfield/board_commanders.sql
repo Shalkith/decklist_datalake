@@ -20,5 +20,4 @@ WHERE dbt_valid_to IS NULL
 SELECT id as deck_id,lastupdated,card as card_name, format,quantity
 FROM decks
 
-
 {% endmacro %}
