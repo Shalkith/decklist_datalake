@@ -6,9 +6,10 @@ pre_filter as (
   select * from {{ref(tablename+'_decks_history')}}
 WHERE dbt_valid_to IS NULL 
  {% if is_incremental() %}
-    AND lastupdated > (SELECT MAX(lastupdated) FROM {{this}})
- {% endif %}
+    AND lastupdated > (SELECT date_add(max(lastupdated),interval -5 day) FROM {{this}})
+ {% else %}
      AND lastupdated < '2025-01-01'
+{% endif %}
 ),
 decks as (
 SELECT id,lastupdated,

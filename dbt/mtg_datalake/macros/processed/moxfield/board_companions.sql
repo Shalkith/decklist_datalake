@@ -13,8 +13,10 @@ FROM {{ref(tablename+'_decks_history')}},
   ) AS t
 WHERE dbt_valid_to IS NULL
  {% if is_incremental() %}
-    AND lastupdated > (SELECT MAX(lastupdated) FROM {{this}})
- {% endif %} 
+    AND lastupdated > (SELECT date_add(max(lastupdated),interval -5 day) FROM {{this}})
+  {% else %}
+     AND lastupdated < '2025-01-01'
+{% endif %}
 )
 SELECT id as deck_id,lastupdated,card as card_name, format,quantity
 FROM decks
