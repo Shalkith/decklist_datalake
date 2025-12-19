@@ -122,6 +122,9 @@ if nature == 'incremental':
         else:
             mox = MoxfieldUtil(job['asset']['name'], start_date,job['parameters']['max_rows'])
         parquetdata,end_date = mox.get_decks()
+        #expand deckdata column in parquetdata
+        parquetdata = mox.expand_deckdata(parquetdata)
+    
 
     else:    
         logging.error('Connection kind not supported: %s' % job['connection']['kind'])
