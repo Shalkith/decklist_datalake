@@ -6,7 +6,7 @@ import time
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional, List, Tuple
-
+import pyarrow as pa
 
 def _parse_iso_datetime(s: str) -> datetime.datetime:
     """Parse ISO-like datetimes returned by the API into a naive UTC datetime. example 2025-12-19T01:03:53.01Z"""
@@ -174,6 +174,90 @@ class MoxfieldUtil:
 
         return df, int(self.start_date_dt.replace(tzinfo=datetime.timezone.utc).timestamp())
 
+    def build_schema(self) -> pa.Schema:
+        """Build a PyArrow schema from the DataFrame.
+        """
+        schema = pa.schema([
+        # Core identifiers
+        pa.field("id", pa.string(), nullable=False),
+        pa.field("name", pa.string()),
+        pa.field("description", pa.string()),
+        pa.field("format", pa.string()),
+        pa.field("visibility", pa.string()),
+        pa.field("publicUrl", pa.string()),
+        pa.field("publicId", pa.string()),
+
+        # Engagement metrics
+        pa.field("likeCount", pa.int64()),
+        pa.field("viewCount", pa.int64()),
+        pa.field("commentCount", pa.int64()),
+        pa.field("bookmarkCount", pa.int64()),
+
+        # Created-by user object
+        pa.field(
+            "createdByUser",
+            pa.struct([
+                pa.field("badges", pa.list_(pa.string())),
+                pa.field("displayName", pa.string()),
+                pa.field("profileImageUrl", pa.string()),
+                pa.field("userName", pa.string()),
+            ])
+        ),
+
+        # Timestamps
+        pa.field("createdAtUtc", pa.timestamp("ms", tz="UTC")),
+        pa.field("lastUpdatedAtUtc", pa.timestamp("ms", tz="UTC")),
+
+        # Metadata
+        pa.field("exportId", pa.string()),
+
+        # Color data
+        pa.field("colors", pa.list_(pa.string())),
+        pa.field(
+            "colorPercentages",
+            pa.struct([
+                pa.field("black", pa.float64()),
+                pa.field("blue", pa.float64()),
+                pa.field("green", pa.float64()),
+                pa.field("red", pa.float64()),
+                pa.field("white", pa.float64()),
+            ])
+        ),
+
+        pa.field("colorIdentity", pa.list_(pa.string())),
+        pa.field(
+            "colorIdentityPercentages",
+            pa.struct([
+                pa.field("black", pa.float64()),
+                pa.field("blue", pa.float64()),
+                pa.field("green", pa.float64()),
+                pa.field("red", pa.float64()),
+                pa.field("white", pa.float64()),
+            ])
+        ),
+
+        # Ownership / flags
+        pa.field("ownerUserId", pa.string()),
+        pa.field("autoBrackt", pa.bool_()),
+        pa.field("bracket", pa.int64()),
+        pa.field("ignoreBrackets", pa.bool_()),
+
+        # Decklists (JSON-encoded strings)
+        pa.field("mainboard", pa.string()),
+        pa.field("sideboard", pa.string()),
+        pa.field("maybeboard", pa.string()),
+        pa.field("commanders", pa.string()),
+        pa.field("companions", pa.string()),
+        pa.field("signatureSpells", pa.string()),
+        pa.field("attractions", pa.string()),
+        pa.field("stickers", pa.string()),
+        pa.field("contraptions", pa.string()),
+        pa.field("planes", pa.string()),
+        pa.field("schemes", pa.string()),
+        pa.field("tokens", pa.string()),
+    ])
+        return schema
+
     def expand_deckdata(self, df: pd.DataFrame) -> pd.DataFrame:
         """Flatten the `deckdata` column into a reduced set of reporting columns.
         """
@@ -185,8 +269,8 @@ class MoxfieldUtil:
         columns = [
             'id', 'name', 'description', 'format', 'visibility', 
             'publicUrl', 'publicId', 'likeCount', 'viewCount',
-            'commentCount','bookmarkCount','createdByUser','boards',
-            'createdAtUtc','lastUpdatedAtUtc','exportId','authorTags',
+            'commentCount','bookmarkCount','createdByUser',
+            'createdAtUtc','lastUpdatedAtUtc','exportId',
             'colors','colorPercentages','colorIdentity','colorIdentityPercentages',
             'ownerUserId','autoBrackt','bracket','ignoreBrackets'
         ]
@@ -196,6 +280,7 @@ class MoxfieldUtil:
             'contraptions','planes','schemes','tokens'            
             ]
         
+                
         boards_dict = {}
         for board in boards:
             boards_dict[board] = {
@@ -229,13 +314,12 @@ class MoxfieldUtil:
                 for col in columns:
                     row[col] = deck_json.get(col)
                 # Extract boards to separate columns
+
                 for board in boards:
+                    row[board] = str({})
                     if board in deck_json.get('boards', {}):
-                        boards_dict[board]['count'] = len(deck_json['boards'][board])
-                        boards_dict[board]['cards'] = deck_json['boards'][board]
-                #add boards to row
-                for board in boards:
-                    row[board] = boards_dict[board]
+                        row[board] = str(deck_json['boards'][board])
+
                 #add row to new_df
                 new_df.loc[len(new_df)] = row                
                 df.loc[_, :] = row
@@ -245,6 +329,21 @@ class MoxfieldUtil:
             except Exception as e:
                 print(f"Error expanding deckdata for id={row.get('id')}: {e}")
                 continue
+                
+
+
+        
+        new_df["createdAtUtc"] = pd.to_datetime(
+            new_df["createdAtUtc"],
+            utc=True,
+            errors="raise"   # fail fast if bad data
+        )
+
+        new_df["lastUpdatedAtUtc"] = pd.to_datetime(
+            new_df["lastUpdatedAtUtc"],
+            utc=True,
+            errors="raise"
+        )
         return new_df
 
 __all__ = ["MoxfieldUtil"]

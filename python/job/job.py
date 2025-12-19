@@ -7,9 +7,11 @@ import argparse
 import pandas as pd
 import datetime 
 from job_configs import *
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 os.chdir(os.path.dirname(__file__))
-from lib.utils.moxfield_util.moxfield_util import MoxfieldUtil
+from lib.utils.moxfield_util.moxfield_util_v2 import MoxfieldUtil
 from lib.utils.commanderspellbook_util.commandespellbook_util import CommanderSpellbookUtil
 from lib.utils.scryfall_util.scryfall_util import ScryfallUtil
 from lib.utils.dbload_util.dbload_util import DBLoadUtil
@@ -163,8 +165,20 @@ else:
         notifier_bot.send_message('Job already exists for this date: %s' % str(end_date))
     sys.exit(1)
 
+if job['connection']['kind'] == 'moxfield':
+    schema = mox.build_schema()
+    table = pa.Table.from_pandas(
+    parquetdata,
+    schema=schema,
+    preserve_index=False
+)
+    pq.write_table(
+    table,
+    os.path.join(output_folder, str(end_date), job['asset']['name'] + ".parquet")
+)
+else:
 
-parquetdata.to_parquet(os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet'))
+    parquetdata.to_parquet(os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet'))
 path_to_parquet = os.path.join(output_folder,str(end_date),job['asset']['name']+'.parquet')
 
 split = ParquetUtil(path_to_parquet)
