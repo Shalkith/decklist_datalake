@@ -175,15 +175,76 @@ class MoxfieldUtil:
         return df, int(self.start_date_dt.replace(tzinfo=datetime.timezone.utc).timestamp())
 
     def expand_deckdata(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Expand deckdata into separate columns for each object 
-        # Example: {"id": "5pvbMd", "name": "Garnet PoA HB", "description": "", "format": "historicBrawl", "visibility": "public", "publicUrl":
+        """Flatten the `deckdata` column into a reduced set of reporting columns.
+        """
+        #orig df columns  id	lastupdated	deckdata
 
-        # Convert deckdata string to JSON
-        df['deckdata'] = df['deckdata'].apply(json.loads)
-        # Expand the deckdata column into separate columns
-        expanded_df = pd.json_normalize(df['deckdata'])
-        # Combine the original DataFrame with the expanded DataFrame
-        result_df = pd.concat([df.drop(columns=['deckdata']), expanded_df], axis=1)
-        return result_df
+        new_df = pd.DataFrame(columns=['id', 'name', 'description'])
+
+        #columns to extract
+        columns = [
+            'id', 'name', 'description', 'format', 'visibility', 
+            'publicUrl', 'publicId', 'likeCount', 'viewCount',
+            'commentCount','bookmarkCount','createdByUser','boards',
+            'createdAtUtc','lastUpdatedAtUtc','exportId','authorTags',
+            'colors','colorPercentages','colorIdentity','colorIdentityPercentages',
+            'ownerUserId','autoBrackt','bracket','ignoreBrackets'
+        ]
+        boards = [
+            'mainboard','sideboard','maybeboard','commanders',
+            'companions','signatureSpells','attractions','stickers',
+            'contraptions','planes','schemes','tokens'            
+            ]
+        
+        boards_dict = {}
+        for board in boards:
+            boards_dict[board] = {
+                'count': 0,
+                'cards': {}
+            }
+
+
+        
+        #add columns to new_df
+        for col in columns:
+            if col not in new_df.columns:
+                new_df[col] = None
+        #add boards to new_df
+        for board in boards:
+            if board not in new_df.columns:
+                #all boards
+                new_df[board] = None
+        
+        for _,row in df.iterrows():
+            try:
+                deckdata = row['deckdata']
+                if isinstance(deckdata, str):
+                    deck_json = json.loads(deckdata)
+                elif isinstance(deckdata, dict):
+                    deck_json = deckdata
+                else:
+                    continue
+
+                # Extract basic fields
+                for col in columns:
+                    row[col] = deck_json.get(col)
+                # Extract boards to separate columns
+                for board in boards:
+                    if board in deck_json.get('boards', {}):
+                        boards_dict[board]['count'] = len(deck_json['boards'][board])
+                        boards_dict[board]['cards'] = deck_json['boards'][board]
+                #add boards to row
+                for board in boards:
+                    row[board] = boards_dict[board]
+                #add row to new_df
+                new_df.loc[len(new_df)] = row                
+                df.loc[_, :] = row
+                #add row to new_df
+
+
+            except Exception as e:
+                print(f"Error expanding deckdata for id={row.get('id')}: {e}")
+                continue
+        return new_df
 
 __all__ = ["MoxfieldUtil"]
