@@ -23,7 +23,7 @@ def _parse_iso_datetime(s: str) -> datetime.datetime:
             continue
     # Last-resort: try to trim fractional seconds and parse
     try:
-        return datetime.datetime.strptime(s[:19], "%Y-%m-%dT%H:%M:%S")
+        return datetime.datetime.strptime(s[:19], "%Y-%m-%d %H:%M:%S")
     except Exception:
         raise ValueError(f"Unrecognized datetime format: {s}")
 
@@ -72,7 +72,7 @@ class MoxfieldUtil:
 
     def _search_page(self, page: int) -> dict:
         url = (f"{self.searchurl}search?pageNumber={page}&pageSize={self.page_size}"
-               f"&sortType={self.sort_type}&sortDirection=Descending{self.filters}&board={self.board}")
+               f"&sortType={self.sort_type}&sortDirection=Ascending{self.filters}&board={self.board}")
         r = self.session.get(url, timeout=self.timeout)
         r.raise_for_status()
         return r.json()
@@ -144,6 +144,8 @@ class MoxfieldUtil:
                 r = self.session.get(url, timeout=self.timeout)
                 r.raise_for_status()
                 data = r.json()
+                data['lastUpdatedAtUtc'] = data.get('lastUpdatedAtUtc', '').replace('T', ' ').split('.')[0]
+                data['createdAtUtc'] = data.get('createdAtUtc', '').replace('T', ' ').split('.')[0]
                 # ensure lastUpdatedAtUtc exists
                 if 'lastUpdatedAtUtc' not in data:
                     return None
@@ -205,8 +207,8 @@ class MoxfieldUtil:
         ),
 
         # Timestamps
-        pa.field("createdAtUtc", pa.timestamp("ms", tz="UTC")),
-        pa.field("lastUpdatedAtUtc", pa.timestamp("ms", tz="UTC")),
+        pa.field("createdAtUtc", pa.string()),
+        pa.field("lastUpdatedAtUtc", pa.string()),
 
         # Metadata
         pa.field("exportId", pa.string()),
@@ -329,21 +331,7 @@ class MoxfieldUtil:
             except Exception as e:
                 print(f"Error expanding deckdata for id={row.get('id')}: {e}")
                 continue
-                
-
-
-        
-        new_df["createdAtUtc"] = pd.to_datetime(
-            new_df["createdAtUtc"],
-            utc=True,
-            errors="raise"   # fail fast if bad data
-        )
-
-        new_df["lastUpdatedAtUtc"] = pd.to_datetime(
-            new_df["lastUpdatedAtUtc"],
-            utc=True,
-            errors="raise"
-        )
+       
         return new_df
 
 __all__ = ["MoxfieldUtil"]

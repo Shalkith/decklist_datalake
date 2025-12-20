@@ -41,6 +41,9 @@ models:
     analytics:
       +schema: analytics
       +materialized: table
+    raw:
+      +materialized: table
+      +schema: mtg_datalake
     processed:
       +materialized: table
       +schema: processed
