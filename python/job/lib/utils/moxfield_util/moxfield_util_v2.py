@@ -72,7 +72,7 @@ class MoxfieldUtil:
 
     def _search_page(self, page: int) -> dict:
         url = (f"{self.searchurl}search?pageNumber={page}&pageSize={self.page_size}"
-               f"&sortType={self.sort_type}&sortDirection=Ascending{self.filters}&board={self.board}")
+               f"&sortType={self.sort_type}&sortDirection=Descending{self.filters}&board={self.board}")
         r = self.session.get(url, timeout=self.timeout)
         r.raise_for_status()
         return r.json()

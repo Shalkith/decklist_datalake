@@ -5,7 +5,7 @@ asset:
   fileformat: util.public.parquet
 nature:
   name: incremental
-  tombstone: lastupdated
+  tombstone: lastUpdatedAtUtc
   unique_key: 'id'
 history: true  
 transform:
