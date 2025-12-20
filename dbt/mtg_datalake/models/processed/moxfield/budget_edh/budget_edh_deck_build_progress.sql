@@ -1,1 +1,0 @@
-{{deck_build_progress('budget_edh')}}
