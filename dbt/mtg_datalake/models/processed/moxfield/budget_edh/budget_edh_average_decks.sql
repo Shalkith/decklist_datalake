@@ -1,1 +1,0 @@
-{{average_decks('budget_edh')}}
