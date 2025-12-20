@@ -43,7 +43,32 @@ models:
       +materialized: table
     raw:
       +materialized: table
-      +schema: mtg_datalake
+      +tags:
+        - rawr
+      moxfield:
+        +tags: 
+          - moxfield
+        pauperedh:
+          +tags:
+            - pauperedh
+        commander:
+          +tags:
+            - commander
+        budget_edh:
+          +tags:
+            - budget_edh
+        historic_brawl:
+          +tags:
+            - brawl
+        cedh:
+          +tags:
+           - cedh
+      scryfall:
+        +tags:
+          - scryfall
+      web_resources:
+        +tags:
+          - web      
     processed:
       +materialized: table
       +schema: processed

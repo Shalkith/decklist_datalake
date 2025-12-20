@@ -1,7 +1,8 @@
 {{
     config(
         materialized='incremental',
-        unique_key=['deck_id']
+        unique_key='id',
+        alias='historicbrawl_decks_history'
     )
 }}
 
