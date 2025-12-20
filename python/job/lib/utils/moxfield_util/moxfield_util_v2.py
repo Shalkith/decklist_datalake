@@ -318,9 +318,9 @@ class MoxfieldUtil:
                 # Extract boards to separate columns
 
                 for board in boards:
-                    row[board] = str({})
+                    row[board] = json.dumps({})
                     if board in deck_json.get('boards', {}):
-                        row[board] = str(deck_json['boards'][board])
+                        row[board] = json.dumps(deck_json['boards'][board])
 
                 #add row to new_df
                 new_df.loc[len(new_df)] = row                
