@@ -1,1 +1,1 @@
-{{deck_build_progress('pedh')}}
+{{deck_build_progress('pauperedh')}}

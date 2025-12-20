@@ -5,4 +5,4 @@
     )
 }}
 
-{{board_commanders('pedh')}}
+{{board_commanders('pauperedh')}}

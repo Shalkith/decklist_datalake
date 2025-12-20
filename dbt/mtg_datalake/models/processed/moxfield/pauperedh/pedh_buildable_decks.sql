@@ -1,1 +1,1 @@
-{{buildable_decks('pedh')}}
+{{buildable_decks('pauperedh')}}

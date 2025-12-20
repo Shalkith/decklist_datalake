@@ -2,4 +2,4 @@
     materialized = "view"
 ) }}
 
-{{decklists('pedh')}}
+{{decklists('pauperedh')}}

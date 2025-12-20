@@ -1,1 +1,1 @@
-{{decks('pedh')}}
+{{decks('pauperedh')}}

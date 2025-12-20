@@ -5,4 +5,4 @@
     )
 }}
 
-{{deck_details('pedh')}}
+{{deck_details('pauperedh')}}

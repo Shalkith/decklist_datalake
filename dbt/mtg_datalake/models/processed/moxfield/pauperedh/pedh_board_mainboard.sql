@@ -5,4 +5,4 @@
     )
 }}
 
-{{board_mainboard('pedh')}}
+{{board_mainboard('pauperedh')}}

@@ -1,1 +1,1 @@
-{{average_decks('pedh')}}
+{{average_decks('pauperedh')}}
