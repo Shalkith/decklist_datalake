@@ -2,7 +2,7 @@
     config(
         materialized='incremental',
         unique_key='id',
-      alias='pauperedh_decks_history'
+        alias='pauperedh_decks_history'
     )
 }}
 
