@@ -1,0 +1,1 @@
+{{deck_build_progress('historicbrawl')}}

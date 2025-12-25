@@ -215,7 +215,7 @@ if len(loadfiles) > 0:
             hist_tablename = job['history_table_prefix']
         except:
             hist_tablename = tablename
-        os.system('dbt run -r {}_history'.format(hist_tablename))
+        os.system('dbt run --select {}_history'.format(hist_tablename))
 
 rows = 0
 for file in loadfiles:

@@ -1,0 +1,1 @@
+{{buildable_average_decks('cedh')}}

@@ -146,11 +146,12 @@ class MoxfieldUtil:
                 data = r.json()
                 data['lastUpdatedAtUtc'] = data.get('lastUpdatedAtUtc', '').replace('T', ' ').split('.')[0]
                 data['createdAtUtc'] = data.get('createdAtUtc', '').replace('T', ' ').split('.')[0]
+                hubs = data.get('hubs', [])
                 # ensure lastUpdatedAtUtc exists
                 if 'lastUpdatedAtUtc' not in data:
                     return None
                 print(f"Fetched deck {deck_id} (name={data.get('name')})")
-                return {'id': deck_id, 'lastupdated': data['lastUpdatedAtUtc'], 'deckdata': json.dumps(data), 'name': data.get('name')}
+                return {'id': deck_id, 'lastupdated': data['lastUpdatedAtUtc'], 'deckdata': json.dumps(data), 'name': data.get('name'),'hubs':hubs}
             except requests.RequestException:
                 print(f"Error fetching deck {deck_id}")
                 return None
@@ -196,15 +197,10 @@ class MoxfieldUtil:
         pa.field("bookmarkCount", pa.int64()),
 
         # Created-by user object
-        pa.field(
-            "createdByUser",
-            pa.struct([
-                pa.field("badges", pa.list_(pa.string())),
-                pa.field("displayName", pa.string()),
-                pa.field("profileImageUrl", pa.string()),
-                pa.field("userName", pa.string()),
-            ])
-        ),
+       pa.field("createdByUser", pa.string()),
+
+        pa.field("hubNames", pa.list_(pa.string())),
+        pa.field("hubs", pa.string()),        
 
         # Timestamps
         pa.field("createdAtUtc", pa.string()),
@@ -215,28 +211,11 @@ class MoxfieldUtil:
 
         # Color data
         pa.field("colors", pa.list_(pa.string())),
-        pa.field(
-            "colorPercentages",
-            pa.struct([
-                pa.field("black", pa.float64()),
-                pa.field("blue", pa.float64()),
-                pa.field("green", pa.float64()),
-                pa.field("red", pa.float64()),
-                pa.field("white", pa.float64()),
-            ])
-        ),
+        pa.field('colorPercentages',pa.string()),
+
 
         pa.field("colorIdentity", pa.list_(pa.string())),
-        pa.field(
-            "colorIdentityPercentages",
-            pa.struct([
-                pa.field("black", pa.float64()),
-                pa.field("blue", pa.float64()),
-                pa.field("green", pa.float64()),
-                pa.field("red", pa.float64()),
-                pa.field("white", pa.float64()),
-            ])
-        ),
+        pa.field("colorIdentityPercentages", pa.string()),
 
         # Ownership / flags
         pa.field("ownerUserId", pa.string()),
@@ -269,9 +248,9 @@ class MoxfieldUtil:
 
         #columns to extract
         columns = [
-            'id', 'name', 'description', 'format', 'visibility', 
+            'id', 'name', 'description', 'format', 'visibility','hasPrimer',
             'publicUrl', 'publicId', 'likeCount', 'viewCount',
-            'commentCount','bookmarkCount','createdByUser',
+            'commentCount','bookmarkCount','createdByUser','hubNames','hubs',
             'createdAtUtc','lastUpdatedAtUtc','exportId',
             'colors','colorPercentages','colorIdentity','colorIdentityPercentages',
             'ownerUserId','autoBrackt','bracket','ignoreBrackets'
@@ -281,6 +260,7 @@ class MoxfieldUtil:
             'companions','signatureSpells','attractions','stickers',
             'contraptions','planes','schemes','tokens'            
             ]
+        json_columns = ['createdByUser','colorPercentages','colorIdentityPercentages','hubs']
         
                 
         boards_dict = {}
@@ -321,6 +301,12 @@ class MoxfieldUtil:
                     row[board] = json.dumps({})
                     if board in deck_json.get('boards', {}):
                         row[board] = json.dumps(deck_json['boards'][board])
+                for col in json_columns:
+                    #if row is a list
+                    if isinstance(deck_json.get(col, {}), list):
+                        row[col] = json.dumps({i: v for i, v in enumerate(deck_json.get(col, {}))})
+                    else:
+                        row[col] = json.dumps(deck_json.get(col, {}))
 
                 #add row to new_df
                 new_df.loc[len(new_df)] = row                

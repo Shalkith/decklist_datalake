@@ -1,0 +1,1 @@
+{{top_cards_sql('historicbrawl_decklists')}}
