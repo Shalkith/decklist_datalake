@@ -14,6 +14,6 @@ transform:
 connection:
   kind: moxfield
 parameters:
-  max_rows: 0
+  max_rows: 5000
 filters:
   fmt: predh
