@@ -1,28 +1,20 @@
 
 {% macro board_mainboard(tablename) %}
+depends_on: {{ ref('historicbrawl_decks_history') }}
 
 with 
-pre_filter as (
-  select * from {{ref(tablename+'_decks_history')}}
-WHERE dbt_valid_to IS NULL 
- {% if is_incremental() %}
-    AND lastupdated > (SELECT date_add(max(lastupdated),interval -5 day) FROM {{this}})
- {% else %}
-     AND lastupdated < '2025-01-01'
-{% endif %}
-),
 decks as (
-SELECT id,lastupdated,
-	JSON_UNQUOTE(JSON_EXTRACT(deckdata, '$.format')) as format,
-    JSON_UNQUOTE(JSON_EXTRACT(deckdata, CONCAT('$.boards.mainboard.cards.', `key`, '.card.name'))) AS card,
-    JSON_UNQUOTE(JSON_EXTRACT(deckdata, CONCAT('$.boards.mainboard.cards.', `key`, '.quantity'))) AS quantity   
-FROM pre_filter,
+SELECT id,lastUpdatedAtUtc,
+	format,
+    JSON_UNQUOTE(JSON_EXTRACT(mainboard, CONCAT('$.cards.', `key`, '.card.name'))) AS card,
+    JSON_UNQUOTE(JSON_EXTRACT(mainboard, CONCAT('$.cards.', `key`, '.quantity'))) AS quantity   
+FROM {{ref(tablename+'_decks_history')}},
   JSON_TABLE(
-    JSON_KEYS(JSON_EXTRACT(deckdata, '$.boards.mainboard.cards')),
+    JSON_KEYS(JSON_EXTRACT(mainboard, '$.cards')),
     '$[*]' COLUMNS (`key` VARCHAR(255) PATH '$')
   ) AS t
 )
-SELECT id as deck_id,lastupdated,card as card_name, format,quantity
+SELECT id as deck_id,lastUpdatedAtUtc,card as card_name, format,quantity
 FROM decks
 
 {% endmacro %}

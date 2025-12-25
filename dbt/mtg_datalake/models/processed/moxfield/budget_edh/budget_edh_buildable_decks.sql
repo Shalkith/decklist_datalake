@@ -1,0 +1,1 @@
+{{buildable_decks('budget_edh')}}

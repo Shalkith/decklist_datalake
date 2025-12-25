@@ -1,24 +1,31 @@
 {% macro deck_details(tablename) %}
+
+{{
+    config(
+        materialized='incremental',
+        unique_key=['deck_id']
+    )
+}}
+
+
     WITH decks AS (
         SELECT
             id,
-            json_unquote(json_extract(deckdata, '$.name')) AS deck_name,
-            json_unquote(json_extract(deckdata, '$.description')) AS description,
-            json_unquote(json_extract(deckdata, '$.publicUrl')) AS publicurl,
-            json_unquote(json_extract(deckdata, '$.likeCount')) AS likecount,
-            json_unquote(json_extract(deckdata, '$.viewCount')) AS viewcount,
-            json_unquote(json_extract(deckdata, '$.commentCount')) AS commentcount,
-            json_unquote(json_extract(deckdata, '$.colors')) AS colors,
-            lastupdated,
-            json_unquote(json_extract(deckdata, '$.createdAtUtc')) AS createdat,
-            json_unquote(json_extract(deckdata, '$.hubs')) AS hubs
+            name AS deck_name,
+            description,
+            publicurl,
+            likecount,
+            viewcount,
+            commentcount,
+            colors,
+            lastUpdatedAtUtc,
+            createdAtUtc,
+            hubs 
         FROM
             {{ ref(tablename+'_decks_history') }}
             hdh
-        WHERE
-            dbt_valid_to IS NULL
 {% if is_incremental() %}
-    AND lastupdated > (SELECT MAX(lastupdated) FROM {{this}})
+        WHERE lastUpdatedAtUtc > (SELECT MAX(lastUpdatedAtUtc) FROM {{this}})
  {% endif %}
     ),
     commanders AS (
@@ -56,9 +63,9 @@ SELECT
     d.likecount,
     d.viewcount,
     d.commentcount,
-    d.lastupdated,
-    d.createdat,
-    hubs
+    d.lastUpdatedAtUtc,
+    d.createdAtUtc,
+    d.hubs
 FROM
     decks d
     LEFT JOIN commanders C

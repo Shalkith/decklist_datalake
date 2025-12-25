@@ -1,0 +1,1 @@
+{{top_commanders('historicbrawl_deck_details')}}

@@ -86,7 +86,7 @@ SELECT
         d.viewcount * 1
     ) viewcount,
     d.publicurl,
-    d.lastupdated
+    d.lastUpdatedAtUtc
 FROM
     quantitycheck q
     LEFT JOIN {{ ref(tablename+'_deck_details') }}

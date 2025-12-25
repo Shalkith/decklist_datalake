@@ -1,0 +1,1 @@
+{{top_commanders('pauperedh_deck_details')}}
