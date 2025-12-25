@@ -8,13 +8,12 @@ nature:
   tombstone: lastUpdatedAtUtc
   unique_key: 'id'
 history: true
-history_table_prefix: pedh_decks
 transform:
   lastupdated: datetime
   deckdata: dict
 connection:
   kind: moxfield
 parameters:
-  max_rows: 0
+  max_rows: 5000
 filters:
   fmt: pauperedh
