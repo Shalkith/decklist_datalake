@@ -27,6 +27,11 @@ class DBLoadUtil:
             self.engine = sqlalchemy.create_engine(
                 'mysql+mysqlconnector://{}:{}@{}:3306/mtg_datalake'.format(self.user, self.password, self.host)
             )
+        elif self.dbtype == 'duckdb':
+            dbpath = os.path.join(dbpath, 'mtg_datalake.duckdb')
+            self.engine = sqlalchemy.create_engine(
+                'duckdb:///:memory:'
+            )
         else:
             logging.error('Database type not supported: %s' % self.dbtype)
             sys.exit(1)
@@ -37,21 +42,42 @@ class DBLoadUtil:
         self.engine.dispose()
 
         
-    def getlastruntime(self,table_name,tombstone):
+    def getlastruntime(self, table_name, tombstone):
         self.connect()
         try:
-            last_unix_time = pd.read_sql('select max(%s) from %s' % (tombstone,table_name), self.db_conn)
-            
-            last_unix_time = last_unix_time.iloc[0,0]
-            #convert the last run time to a unix timestamp
-            # '2025-02-19 22:09:49.670000'
-            last_unix_time = int(time.mktime(datetime.datetime.strptime(str(last_unix_time), '%Y-%m-%d %H:%M:%S.%f').timetuple()))
+            # Prefer DB-side UNIX timestamp when available (MySQL / MariaDB)
+            if self.dbtype in ('mysql', 'mariadb'):
+                q = f"SELECT UNIX_TIMESTAMP(MAX({tombstone})) AS last_unix_time FROM {table_name}"
+                res = pd.read_sql(q, self.db_conn)
+                val = res.iloc[0, 0]
+                if pd.isna(val) or val is None:
+                    return 0
+                return int(val)
+
+            # Generic fallback: read the max datetime and parse in Python
+            res = pd.read_sql(f"SELECT MAX({tombstone}) AS last_time FROM {table_name}", self.db_conn)
+            val = res.iloc[0, 0]
+            if pd.isna(val) or val is None:
+                return 0
+
+            # Use pandas to_datetime (handles many formats). Force UTC to avoid ambiguous timezone.
+            ts = pd.to_datetime(val, utc=True, errors='coerce')
+            if pd.isna(ts):
+                # final fallback: try parsing string explicitly
+                try:
+                    ts = pd.to_datetime(str(val), utc=True)
+                except Exception:
+                    logging.error("Could not parse last run time: %s", val)
+                    return 0
+
+            # Return integer seconds since epoch (UTC)
+            return int(ts.timestamp())
+
         except Exception as e:
-            print(e)
-            logging.error('Error getting last run time: %s' % e)
-            last_unix_time = 0
-        #close connection
-        self.close_connection()
+            logging.error("Error getting last run time: %s", e)
+            return 0
+        finally:
+            self.close_connection()
         
         return last_unix_time
 
@@ -162,7 +188,7 @@ class DBLoadUtil:
                     #keep column names
                     try:
                         tempdf = dataframe.loc[dataframe[index_name] == row.id]
-                        tempdf.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.Text})
+                        tempdf.to_sql(table_name, self.db_conn, if_exists='append', index=False, dtype={'json': sqlalchemy.types.JSON()})
                         print('Deck {} inserted into table: {}'.format(row.id,table_name))
                     except Exception as e:
                         errorcount += 1
@@ -174,3 +200,8 @@ class DBLoadUtil:
             # remove duplicates from the table
             print('Data inserted into table:',table_name)
         self.close_connection()
+
+if __name__ == '__main__':
+    # Example usage - duckdb
+    db_util = DBLoadUtil(dbpath='path/to/your/database', dbtype='duckdb', user='your_user', password='your_password', host='localhost')
+    db_util.connect()
